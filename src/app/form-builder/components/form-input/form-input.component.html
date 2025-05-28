@@ -1,0 +1,74 @@
+<div class="field" [formGroup]="form">
+  <div class="field__header">
+    <label [for]="field.id" class="field__header__label">{{ field.label }}</label>
+    <p-button size="small" variant="text" styleClass="field__header__edit" (click)="openEditDialog.emit()">
+      <fa-icon [icon]="faPencil" size="sm"></fa-icon>
+    </p-button>
+    <p-button size="small" variant="text" styleClass="field__header__delete" (click)="delete.emit()">
+      <fa-icon [icon]="faTrash" size="sm"></fa-icon>
+    </p-button>
+  </div>
+
+  <!-- Text-based inputs -->
+  <input
+    *ngIf="field.type === InputType.TEXT || field.type === InputType.EMAIL"
+    pInputText
+    [id]="field.id"
+    [type]="field.type"
+    [formControlName]="field.id"
+    [placeholder]="field.placeholder"
+    lass="field"
+  />
+
+  <!-- Number input -->
+  <p-inputNumber
+    *ngIf="field.type === InputType.NUMBER"
+    [inputId]="field.id"
+    [formControlName]="field.id"
+    [placeholder]="field.placeholder"
+    inputStyleClass="w-full"
+    styleClass="field"
+  ></p-inputNumber>
+
+  <!-- Single select dropdown -->
+  <p-select
+    *ngIf="field.type === InputType.RADIO"
+    [inputId]="field.id"
+    [formControlName]="field.id"
+    [options]="field.options ?? []"
+    [placeholder]="field.placeholder"
+    optionLabel=""
+    class="w-full"
+    styleClass="field"
+  ></p-select>
+
+  <!-- Multi-select dropdown -->
+  <p-multiSelect
+    *ngIf="field.type === InputType.CHECKBOX"
+    [inputId]="field.id"
+    [formControlName]="field.id"
+    [options]="field.options ?? []"
+    [placeholder]="field.placeholder"
+    class="w-full"
+    styleClass="field"
+  ></p-multiSelect>
+
+  <!-- Text area -->
+  <textarea
+    *ngIf="field.type === InputType.TEXTAREA"
+    [formControlName]="field.id"
+    rows="5"
+    cols="30"
+    pTextarea
+    styleClass="field"
+  ></textarea>
+
+  <!-- Date -->
+  <p-datepicker *ngIf="field.type === InputType.DATE" [formControlName]="field.id" styleClass="field" />
+
+  <!-- Password -->
+  <p-password *ngIf="field.type === InputType.PASSWORD" [formControlName]="field.id" styleClass="field" />
+
+  <!-- Error message -->
+  <small *ngIf="showError()" class="p-error">This field is required.</small>
+</div>

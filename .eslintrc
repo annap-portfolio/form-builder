@@ -1,0 +1,63 @@
+{
+  "root": true,
+  "ignorePatterns": ["projects/**/*"],
+  "plugins": ["jasmine"],
+  "env": {
+    "node": true,
+    "browser": true,
+    "jasmine": true,
+  },
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parserOptions": {
+        "project": ["tsconfig.json"],
+        "createDefaultProgram": true,
+      },
+      "extends": [
+        "plugin:@angular-eslint/recommended",
+        "plugin:@angular-eslint/template/process-inline-templates",
+        "eslint:recommended",
+        "prettier",
+        "plugin:jasmine/recommended",
+        "plugin:security/recommended-legacy",
+      ],
+      "rules": {
+        "@angular-eslint/component-class-suffix": "warn",
+        "@angular-eslint/component-selector": [
+          "warn",
+          {
+            "type": "element",
+            "prefix": ["app", "vint"],
+            "style": "kebab-case",
+          },
+        ],
+        "@angular-eslint/directive-selector": [
+          "warn",
+          {
+            "type": "attribute",
+            "prefix": ["app", "vint"],
+            "style": "camelCase",
+          },
+        ],
+        "@angular-eslint/no-output-on-prefix": "warn",
+        "no-case-declarations": "off",
+        "no-prototype-builtins": "off",
+        "no-unused-vars": "off",
+        "no-useless-escape": "off",
+      },
+    },
+    {
+      "files": ["*.spec.ts"],
+      "rules": {
+        "dot-notation": "off",
+        "jasmine/prefer-toHaveBeenCalledWith": "off",
+      },
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended", "prettier"],
+      "rules": {},
+    },
+  ],
+}

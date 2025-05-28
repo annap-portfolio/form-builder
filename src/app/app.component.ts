@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { FormBuilderComponent } from './form-builder/form-builder.component';
+import { HeaderComponent } from './header/header.component';
+import { DividerModule } from 'primeng/divider';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [FormBuilderComponent, HeaderComponent, DividerModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
   title = 'form-builder';

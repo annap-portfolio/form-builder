@@ -1,0 +1,10 @@
+:host {
+  padding: 16px;
+  display: grid;
+  grid-template-rows: 32px auto;
+  gap: 16px;
+
+  .p-divider-horizontal {
+    margin: 0;
+  }
+}

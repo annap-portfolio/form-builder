@@ -1,0 +1,32 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+
+    &__label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+  }
+
+  ::ng-deep {
+    .field__header__edit {
+      padding: 5px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .field {
+      width: 100%;
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+}
