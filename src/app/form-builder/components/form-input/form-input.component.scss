@@ -1,4 +1,18 @@
+:host {
+  display: flex;
+  gap: 16px;
+}
+
+.grip-handle {
+  margin-top: 8px;
+
+  &:hover {
+    cursor: grab;
+  }
+}
+
 .field {
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;

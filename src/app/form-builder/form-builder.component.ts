@@ -9,6 +9,7 @@ import { FieldEditDialogComponent } from './components/field-edit-dialog/field-e
 import { FormInputComponent } from './components/form-input/form-input.component';
 import { InputSelectorComponent } from './components/input-selector/input-selector.component';
 import { TabsModule } from 'primeng/tabs';
+import { DragDropModule } from 'primeng/dragdrop';
 
 @Component({
   selector: 'app-form-builder',
@@ -21,6 +22,7 @@ import { TabsModule } from 'primeng/tabs';
     FieldEditDialogComponent,
     DialogModule,
     TabsModule,
+    DragDropModule,
   ],
   templateUrl: './form-builder.component.html',
   styleUrl: './form-builder.component.scss',
@@ -100,7 +102,41 @@ export class FormBuilderComponent implements OnInit {
     }
   }
 
+  private draggedIndex: number | null = null;
+
+  onDragStart(index: number) {
+    this.draggedIndex = index;
+  }
+
+  onDrop(dropIndex: number) {
+    console.log(dropIndex);
+    if (this.draggedIndex === null || this.draggedIndex === dropIndex) return;
+
+    const draggedField = this.formModel.fields[this.draggedIndex];
+    this.formModel.fields.splice(this.draggedIndex, 1);
+    this.formModel.fields.splice(dropIndex, 0, draggedField);
+
+    this.draggedIndex = null;
+    this.saveFormModel();
+  }
+
   private saveFormModel(): void {
     localStorage.setItem('formModel', JSON.stringify(this.formModel));
+  }
+
+  onDropDivider(targetIndex: number): void {
+    if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
+
+    const field = this.formModel.fields[this.draggedIndex];
+
+    // Remove from old position
+    this.formModel.fields.splice(this.draggedIndex, 1);
+
+    // Insert at new position
+    const adjustedIndex = this.draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    this.formModel.fields.splice(adjustedIndex, 0, field);
+
+    this.draggedIndex = null;
+    this.saveFormModel();
   }
 }

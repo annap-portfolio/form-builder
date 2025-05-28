@@ -11,7 +11,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { Field, InputType } from '../../../models/form.model';
 import { ButtonModule } from 'primeng/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faGripVertical, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-form-input',
@@ -40,6 +40,7 @@ export class FormInputComponent {
   readonly InputType = InputType;
   readonly faPencil = faPencil;
   readonly faTrash = faTrash;
+  readonly faGripVertical = faGripVertical;
 
   get control() {
     return this.form.get(this.field.id);
