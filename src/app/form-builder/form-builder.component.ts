@@ -3,13 +3,13 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { DragDropModule } from 'primeng/dragdrop';
+import { TabsModule } from 'primeng/tabs';
 import { FormBuilderService } from '../core/services/form-builder.service';
-import { Field, FormModel, InputType } from '../models/form.model';
+import { Field, FormElement, FormModel, Group, InputType } from '../models/form.model';
 import { FieldEditDialogComponent } from './components/field-edit-dialog/field-edit-dialog.component';
 import { FormInputComponent } from './components/form-input/form-input.component';
 import { InputSelectorComponent } from './components/input-selector/input-selector.component';
-import { TabsModule } from 'primeng/tabs';
-import { DragDropModule } from 'primeng/dragdrop';
 
 @Component({
   selector: 'app-form-builder',
@@ -41,6 +41,8 @@ export class FormBuilderComponent implements OnInit {
   isEditDialogVisible = false;
   editedField = signal<Field | null>(null);
 
+  private draggedIndex: number | null = null;
+
   constructor() {
     window.addEventListener('resize', () => {
       this.screenWidth.set(window.innerWidth);
@@ -52,6 +54,7 @@ export class FormBuilderComponent implements OnInit {
     if (saved) {
       this.formModel = JSON.parse(saved);
       this.form = this.formBuilderService.buildForm(this.formModel);
+      console.log(this.form);
     }
   }
 
@@ -65,21 +68,50 @@ export class FormBuilderComponent implements OnInit {
     };
 
     this.formModel.fields.push(newField);
-    this.form.addControl(newField.id, this.formBuilderService.buildControl(newField));
+
+    // Rebuild form with updated model
+    this.form = this.formBuilderService.buildForm(this.formModel);
+
     this.saveFormModel();
   }
 
-  onOpenFieldEditDialog(field: Field): void {
-    this.isEditDialogVisible = true;
-    this.editedField.set(field);
+  onOpenFieldEditDialog(field: FormElement): void {
+    if (this.isField(field)) {
+      this.isEditDialogVisible = true;
+      this.editedField.set(field);
+    }
   }
 
-  onFieldDelete(field: Field): void {
-    this.formModel.fields = this.formModel.fields.filter((f) => f.id !== field.id);
-    this.form.removeControl(field.id);
+  onFieldDelete(field: FormElement): void {
+    if (this.isField(field)) {
+      this.formModel.fields = this.formModel.fields.filter((f) => f.id !== field.id);
+      this.form.removeControl(field.id);
 
-    this.editedField.set(null);
-    this.isEditDialogVisible = false;
+      this.editedField.set(null);
+      this.isEditDialogVisible = false;
+
+      this.saveFormModel();
+    }
+  }
+
+  onFieldUngroup(field: FormElement, parentGroup: Group | undefined): void {
+    if (!parentGroup) return; // not in a group
+
+    const parentGroupIndex = this.formModel.fields.findIndex((el) => el.id === parentGroup.id);
+    if (parentGroupIndex === -1) return;
+
+    const fieldIndexInGroup = parentGroup.children.findIndex((child) => child.id === field.id);
+    if (fieldIndexInGroup !== -1) {
+      parentGroup.children.splice(fieldIndexInGroup, 1);
+    }
+
+    // Insert field right after the group
+    this.formModel.fields.splice(parentGroupIndex + 1, 0, field);
+
+    // Remove group if empty
+    if (parentGroup.children.length === 0) {
+      this.formModel.fields.splice(parentGroupIndex, 1);
+    }
 
     this.saveFormModel();
   }
@@ -102,26 +134,58 @@ export class FormBuilderComponent implements OnInit {
     }
   }
 
-  private draggedIndex: number | null = null;
-
   onDragStart(index: number) {
     this.draggedIndex = index;
   }
 
-  onDrop(dropIndex: number) {
-    console.log(dropIndex);
-    if (this.draggedIndex === null || this.draggedIndex === dropIndex) return;
+  onDropField(targetIndex: number): void {
+    if (this.draggedIndex == null || targetIndex == null || this.draggedIndex === targetIndex) return;
 
-    const draggedField = this.formModel.fields[this.draggedIndex];
-    this.formModel.fields.splice(this.draggedIndex, 1);
-    this.formModel.fields.splice(dropIndex, 0, draggedField);
+    const draggedElement = this.formModel.fields[this.draggedIndex];
+    const targetElement = this.formModel.fields[targetIndex];
 
-    this.draggedIndex = null;
-    this.saveFormModel();
+    // Cannot drag a group
+    if (this.isGroup(draggedElement)) {
+      this.resetDrag();
+      return;
+    }
+
+    // Dropping a field onto an existing group
+    if (this.isField(draggedElement) && this.isGroup(targetElement)) {
+      targetElement.children.push(draggedElement);
+      this.formModel.fields.splice(this.draggedIndex, 1);
+      this.resetDrag();
+      this.saveFormModel();
+      return;
+    }
+
+    // Dropping a field onto another field -> create a new group
+    if (this.isField(targetElement) && this.isField(draggedElement)) {
+      const newGroup: Group = {
+        id: crypto.randomUUID(),
+        type: InputType.GROUP,
+        label: 'New Group',
+        children: [targetElement, draggedElement],
+      };
+
+      this.formModel.fields[targetIndex] = newGroup;
+      this.formModel.fields.splice(this.draggedIndex, 1);
+
+      this.resetDrag();
+      this.saveFormModel();
+    }
   }
 
-  private saveFormModel(): void {
-    localStorage.setItem('formModel', JSON.stringify(this.formModel));
+  private resetDrag() {
+    this.draggedIndex = null;
+  }
+
+  isField(element: FormElement): element is Field {
+    return element.type !== InputType.GROUP;
+  }
+
+  isGroup(element: FormElement): element is Group {
+    return element.type === InputType.GROUP;
   }
 
   onDropDivider(targetIndex: number): void {
@@ -138,5 +202,17 @@ export class FormBuilderComponent implements OnInit {
 
     this.draggedIndex = null;
     this.saveFormModel();
+  }
+
+  getFormGroup(group: Group): FormGroup | null {
+    if (this.isGroup(group)) {
+      return this.form.controls[group.id] as FormGroup;
+    } else {
+      return null;
+    }
+  }
+
+  private saveFormModel(): void {
+    localStorage.setItem('formModel', JSON.stringify(this.formModel));
   }
 }

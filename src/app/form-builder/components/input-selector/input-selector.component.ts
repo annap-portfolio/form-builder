@@ -38,6 +38,7 @@ export class InputSelectorComponent {
     [InputType.CHECKBOX]: faCheckSquare,
     [InputType.RADIO]: faDotCircle,
     [InputType.DATE]: faCalendar,
+    [InputType.GROUP]: faCalendar,
   };
 
   // 4. Source array

@@ -1,6 +1,6 @@
 <fa-icon [icon]="faGripVertical" class="grip-handle"></fa-icon>
 
-<div class="field" [formGroup]="form">
+<div class="field" [formGroup]="formGroup">
   <div class="field__header">
     <label [for]="field.id" class="field__header__label">{{ field.label }}</label>
     <p-button size="small" variant="text" styleClass="field__header__edit" (click)="openEditDialog.emit()">
@@ -9,6 +9,11 @@
     <p-button size="small" variant="text" styleClass="field__header__delete" (click)="delete.emit()">
       <fa-icon [icon]="faTrash" size="sm"></fa-icon>
     </p-button>
+    @if (isInGroup()) {
+      <p-button size="small" variant="text" styleClass="field__header__ungroup" (click)="ungroup.emit()">
+        <fa-icon [icon]="faLinkSlash" size="sm"></fa-icon>
+      </p-button>
+    }
   </div>
 
   <!-- Text-based inputs -->

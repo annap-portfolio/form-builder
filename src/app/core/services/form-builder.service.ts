@@ -1,37 +1,38 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
-import { FormModel, Field, Group, ValidatorConfig } from '../../models/form.model';
+import { FormModel, Field, Group, ValidatorConfig, FormElement, InputType } from '../../models/form.model';
 
 @Injectable({ providedIn: 'root' })
 export class FormBuilderService {
   constructor(private fb: FormBuilder) {}
 
   buildForm(model: FormModel): FormGroup {
-    const controls: Record<string, any> = {};
-
-    model.fields.forEach((field) => {
-      if ('children' in field) {
-        // controls[field.id] = this.buildGroup(field);
-      } else {
-        controls[field.id] = this.buildControl(field);
-      }
-    });
-
+    const controls = this.buildControls(model.fields);
     return this.fb.group(controls);
   }
 
-  buildControl(field: Field): FormControl {
-    const validators = this.mapValidators(field.validators);
-    return this.fb.control(field.value ?? null, validators);
+  private buildControls(elements: FormElement[]): Record<string, FormControl | FormGroup> {
+    const controls: Record<string, FormControl | FormGroup> = {};
+
+    for (const element of elements) {
+      if (this.isGroup(element)) {
+        controls[element.id] = this.buildGroup(element);
+      } else {
+        controls[element.id] = this.buildControl(element);
+      }
+    }
+
+    return controls;
   }
 
   private buildGroup(group: Group): FormGroup {
-    const groupControls = group.children.reduce((acc, field) => {
-      acc[field.id] = this.buildControl(field);
-      return acc;
-    }, {} as Record<string, FormControl>);
+    const childControls = this.buildControls(group.children);
+    return this.fb.group(childControls);
+  }
 
-    return this.fb.group(groupControls);
+  private buildControl(field: Field): FormControl {
+    const validators = this.mapValidators(field.validators);
+    return this.fb.control(field.value ?? null, validators);
   }
 
   private mapValidators(configs: ValidatorConfig[]): any[] {
@@ -51,5 +52,13 @@ export class FormBuilderService {
         }
       })
       .filter(Boolean);
+  }
+
+  private isGroup(element: FormElement): element is Group {
+    return element.type === InputType.GROUP;
+  }
+
+  private isField(element: FormElement): element is Field {
+    return element.type !== InputType.GROUP;
   }
 }

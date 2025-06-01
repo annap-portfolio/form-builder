@@ -8,6 +8,13 @@
     grid-template-columns: 148px 1fr 1fr;
     gap: 16px;
   }
+
+  ::ng-deep {
+    .p-tabpanels {
+      height: calc(100vh - 152px);
+      overflow: auto;
+    }
+  }
 }
 
 .fields {
@@ -36,6 +43,12 @@
   transition: border 0.2s ease;
   padding: 8px;
   border-radius: 8px;
+
+  &--group {
+    border: 1px dashed #aaa;
+    padding: 16px 12px 8px;
+    margin: 4px 0;
+  }
 }
 
 .field-wrapper.p-draggable-enter {
@@ -49,5 +62,14 @@
   border-radius: 2px;
   &.p-draggable-enter {
     background-color: #007ad9;
+  }
+}
+
+.group {
+  &__title {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+    margin-left: 8px;
   }
 }

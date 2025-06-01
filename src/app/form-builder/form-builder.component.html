@@ -37,17 +37,9 @@
 <ng-template #formContent>
   <h2>Form</h2>
   @if (formModel.fields.length > 0) {
-    <div class="fields">
-      @for (field of formModel.fields; track field.id; let i = $index) {
-        <div class="field-divider" (onDrop)="onDropDivider(i)" pDroppable></div>
-        <div pDraggable (onDragStart)="onDragStart(i)" (onDrop)="onDrop(i)" pDroppable class="field-wrapper">
-          <app-form-input
-            [field]="field"
-            [form]="form"
-            (openEditDialog)="onOpenFieldEditDialog(field)"
-            (delete)="onFieldDelete(field)"
-          ></app-form-input>
-        </div>
+    <div class="fields" [formGroup]="form">
+      @for (element of formModel.fields; track element.id; let i = $index) {
+        <ng-container *ngTemplateOutlet="renderElement; context: { $implicit: element, index: i }"></ng-container>
       }
     </div>
   } @else {
@@ -56,6 +48,47 @@
       <p>Add fields from the left to build your form.</p>
     </div>
   }
+</ng-template>
+
+<ng-template #renderElement let-element let-index="index" let-parentGroup="parentGroup" let-group="group">
+  <div class="field-divider" (onDrop)="onDropDivider(index)" pDroppable></div>
+
+  <div
+    class="field-wrapper"
+    [ngClass]="{ 'field-wrapper--group': isGroup(element) }"
+    pDraggable
+    (onDragStart)="onDragStart(index)"
+    (onDrop)="onDropField(index)"
+    pDroppable
+  >
+    @if (isField(element)) {
+      <app-form-input
+        [field]="element"
+        [formGroup]="group"
+        [isInGroup]="!!parentGroup"
+        (openEditDialog)="onOpenFieldEditDialog(element)"
+        (delete)="onFieldDelete(element)"
+        (ungroup)="onFieldUngroup(element, parentGroup)"
+      ></app-form-input>
+    }
+
+    <!-- Group: only outer area droppable, not its children -->
+    @if (isGroup(element)) {
+      <div class="group" *ngIf="getFormGroup(element) as group">
+        <h3 class="group__title">{{ element.label }}</h3>
+        <div class="group__fields nested">
+          @for (child of element.children; track child.id; let j = $index) {
+            <ng-container
+              *ngTemplateOutlet="
+                renderElement;
+                context: { $implicit: child, index: j, parentGroup: element, group: group }
+              "
+            ></ng-container>
+          }
+        </div>
+      </div>
+    }
+  </div>
 </ng-template>
 
 <ng-template #codeContent>
