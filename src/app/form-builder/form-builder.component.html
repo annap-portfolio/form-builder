@@ -64,19 +64,18 @@
     @if (isField(element)) {
       <app-form-input
         [field]="element"
-        [formGroup]="group"
+        [formGroup]="group ?? form"
         [isInGroup]="!!parentGroup"
         (openEditDialog)="onOpenFieldEditDialog(element)"
-        (delete)="onFieldDelete(element)"
+        (delete)="onFieldDelete(element, parentGroup)"
         (ungroup)="onFieldUngroup(element, parentGroup)"
       ></app-form-input>
     }
 
-    <!-- Group: only outer area droppable, not its children -->
     @if (isGroup(element)) {
       <div class="group" *ngIf="getFormGroup(element) as group">
         <h3 class="group__title">{{ element.label }}</h3>
-        <div class="group__fields nested">
+        <div class="group__fields">
           @for (child of element.children; track child.id; let j = $index) {
             <ng-container
               *ngTemplateOutlet="

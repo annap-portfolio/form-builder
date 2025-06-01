@@ -82,35 +82,70 @@ export class FormBuilderComponent implements OnInit {
     }
   }
 
-  onFieldDelete(field: FormElement): void {
-    if (this.isField(field)) {
+  onFieldDelete(field: FormElement, parentGroup: Group | undefined): void {
+    if (!this.isField(field)) return;
+
+    if (parentGroup) {
+      // Field is inside a group
+      const groupIndex = this.formModel.fields.findIndex((f) => f.id === parentGroup.id);
+      if (groupIndex === -1) return;
+
+      // Remove from group's children
+      parentGroup.children = parentGroup.children.filter((child) => child.id !== field.id);
+
+      // Remove control from group FormGroup
+      const groupForm = this.form.get(parentGroup.id) as FormGroup;
+      if (groupForm && groupForm.contains(field.id)) {
+        groupForm.removeControl(field.id);
+      }
+
+      // If group is empty after deletion, remove it
+      if (parentGroup.children.length === 0) {
+        this.formModel.fields.splice(groupIndex, 1);
+        this.form.removeControl(parentGroup.id);
+      }
+    } else {
+      // Field is at top level
       this.formModel.fields = this.formModel.fields.filter((f) => f.id !== field.id);
       this.form.removeControl(field.id);
-
-      this.editedField.set(null);
-      this.isEditDialogVisible = false;
-
-      this.saveFormModel();
     }
+
+    this.editedField.set(null);
+    this.isEditDialogVisible = false;
+    this.saveFormModel();
   }
 
   onFieldUngroup(field: FormElement, parentGroup: Group | undefined): void {
-    if (!parentGroup) return; // not in a group
+    if (!parentGroup || !this.isGroup(parentGroup)) return;
 
     const parentGroupIndex = this.formModel.fields.findIndex((el) => el.id === parentGroup.id);
     if (parentGroupIndex === -1) return;
 
     const fieldIndexInGroup = parentGroup.children.findIndex((child) => child.id === field.id);
-    if (fieldIndexInGroup !== -1) {
-      parentGroup.children.splice(fieldIndexInGroup, 1);
+    if (fieldIndexInGroup === -1) return;
+
+    // Remove the field from the group's children
+    parentGroup.children.splice(fieldIndexInGroup, 1);
+
+    // Remove control from group FormGroup
+    const groupControl = this.form.get(parentGroup.id) as FormGroup;
+    if (groupControl && groupControl.contains(field.id)) {
+      const control = groupControl.get(field.id);
+      groupControl.removeControl(field.id);
+
+      // Add control back to top-level form
+      if (control) {
+        this.form.addControl(field.id, control);
+      }
     }
 
-    // Insert field right after the group
+    // Insert the field back into the top-level fields array after the group
     this.formModel.fields.splice(parentGroupIndex + 1, 0, field);
 
-    // Remove group if empty
+    // If the group is now empty, remove it
     if (parentGroup.children.length === 0) {
       this.formModel.fields.splice(parentGroupIndex, 1);
+      this.form.removeControl(parentGroup.id); // Also remove group FormGroup
     }
 
     this.saveFormModel();
@@ -150,10 +185,19 @@ export class FormBuilderComponent implements OnInit {
       return;
     }
 
-    // Dropping a field onto an existing group
+    // Dropping a field onto an existing group -> add to group's children
     if (this.isField(draggedElement) && this.isGroup(targetElement)) {
       targetElement.children.push(draggedElement);
+
+      // Remove from top-level
       this.formModel.fields.splice(this.draggedIndex, 1);
+
+      // Register control in the form
+      if (!this.form.contains(draggedElement.id)) {
+        const control = this.formBuilderService.createControl(draggedElement);
+        this.form.addControl(draggedElement.id, control);
+      }
+
       this.resetDrag();
       this.saveFormModel();
       return;
@@ -171,6 +215,12 @@ export class FormBuilderComponent implements OnInit {
       this.formModel.fields[targetIndex] = newGroup;
       this.formModel.fields.splice(this.draggedIndex, 1);
 
+      // Create a nested FormGroup for the new group
+      const groupForm = this.formBuilderService.createGroup(newGroup);
+
+      // Add the group to the top-level form under its ID
+      this.form.addControl(newGroup.id, groupForm);
+
       this.resetDrag();
       this.saveFormModel();
     }
@@ -181,10 +231,12 @@ export class FormBuilderComponent implements OnInit {
   }
 
   isField(element: FormElement): element is Field {
+    if (!element) return false;
     return element.type !== InputType.GROUP;
   }
 
   isGroup(element: FormElement): element is Group {
+    if (!element) return false;
     return element.type === InputType.GROUP;
   }
 

@@ -25,6 +25,27 @@ export class FormBuilderService {
     return controls;
   }
 
+  /**
+   * Creates a FormControl based on a Field's configuration.
+   */
+  createControl(field: Field): FormControl {
+    const validators = this.mapValidators(field.validators || []);
+    return this.fb.control(field.value ?? null, validators);
+  }
+
+  /**
+   * Creates a FormGroup from a Group element, recursively adding children.
+   */
+  createGroup(group: Group): FormGroup {
+    const controls: { [key: string]: FormControl } = {};
+
+    for (const child of group.children) {
+      controls[child.id] = this.createControl(child);
+    }
+
+    return this.fb.group(controls);
+  }
+
   private buildGroup(group: Group): FormGroup {
     const childControls = this.buildControls(group.children);
     return this.fb.group(childControls);
