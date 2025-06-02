@@ -48,10 +48,12 @@ export class FormBuilderComponent implements OnInit {
   isEditDialogVisible = false;
   editedElement = signal<FormElement | null>(null);
 
+  // Icons
   faTrash = faTrash;
   faPencil = faPencil;
   faLinkSlash = faLinkSlash;
 
+  // Exposed functions
   isGroup = isGroup;
   isField = isField;
 
@@ -65,7 +67,6 @@ export class FormBuilderComponent implements OnInit {
     const savedJson = localStorage.getItem('formBuilder');
     if (savedJson) {
       this.formDefinition = FormDefinition.fromJSON(savedJson);
-      console.log(this.formDefinition);
       this.form = this.formBuilderService.buildForm(this.formDefinition);
     }
   }
@@ -90,39 +91,6 @@ export class FormBuilderComponent implements OnInit {
     } else if (isField(element)) {
       this.deleteField(element, parentGroup);
     }
-    this.saveFormModel();
-  }
-
-  private deleteGroup(group: Group) {
-    this.formDefinition.removeChildById(group.id);
-    if (this.form?.contains(group.id)) {
-      this.form.removeControl(group.id);
-    }
-    this.saveFormModel();
-  }
-
-  private deleteField(field: Field, parentGroup: Group | undefined) {
-    if (parentGroup) {
-      // Remove from group
-      parentGroup.removeChild(field.id);
-
-      const groupControl = this.form.get(parentGroup.id) as FormGroup;
-      if (groupControl?.contains(field.id)) {
-        groupControl.removeControl(field.id);
-      }
-
-      if (parentGroup.isEmpty()) {
-        this.formDefinition.removeChildById(parentGroup.id);
-        this.form.removeControl(parentGroup.id);
-      }
-    } else {
-      // Remove top-level field
-      this.formDefinition.removeChildById(field.id);
-      this.form.removeControl(field.id);
-    }
-
-    this.editedElement.set(null);
-    this.isEditDialogVisible = false;
     this.saveFormModel();
   }
 
@@ -221,6 +189,39 @@ export class FormBuilderComponent implements OnInit {
     } else {
       return null;
     }
+  }
+
+  private deleteGroup(group: Group) {
+    this.formDefinition.removeChildById(group.id);
+    if (this.form?.contains(group.id)) {
+      this.form.removeControl(group.id);
+    }
+    this.saveFormModel();
+  }
+
+  private deleteField(field: Field, parentGroup: Group | undefined) {
+    if (parentGroup) {
+      // Remove from group
+      parentGroup.removeChild(field.id);
+
+      const groupControl = this.form.get(parentGroup.id) as FormGroup;
+      if (groupControl?.contains(field.id)) {
+        groupControl.removeControl(field.id);
+      }
+
+      if (parentGroup.isEmpty()) {
+        this.formDefinition.removeChildById(parentGroup.id);
+        this.form.removeControl(parentGroup.id);
+      }
+    } else {
+      // Remove top-level field
+      this.formDefinition.removeChildById(field.id);
+      this.form.removeControl(field.id);
+    }
+
+    this.editedElement.set(null);
+    this.isEditDialogVisible = false;
+    this.saveFormModel();
   }
 
   private saveFormModel() {

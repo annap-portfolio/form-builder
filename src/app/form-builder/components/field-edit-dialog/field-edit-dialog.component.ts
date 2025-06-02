@@ -20,7 +20,6 @@ export class FieldEditDialogComponent implements OnInit {
   update = output<Field>();
 
   label = '';
-
   isGroup = isGroup;
 
   ngOnInit() {

@@ -40,8 +40,4 @@ export class Field {
     const name = type.charAt(0).toUpperCase() + type.slice(1);
     return `${name} Field`;
   }
-
-  static defaultPlaceholderFor(type: InputType): string {
-    return `Enter ${type}`;
-  }
 }

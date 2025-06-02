@@ -33,9 +33,9 @@ import { TextareaModule } from 'primeng/textarea';
   styleUrl: './form-input.component.scss',
 })
 export class FormInputComponent {
-  @Input() field!: FormElement;
-  @Input() formGroup!: FormGroup;
+  field = input.required<FormElement>();
   isInGroup = input<boolean>();
+  @Input() formGroup!: FormGroup;
   openEditDialog = output<void>();
   delete = output<void>();
   ungroup = output<void>();
@@ -47,7 +47,7 @@ export class FormInputComponent {
   readonly faLinkSlash = faLinkSlash;
 
   get control() {
-    return this.formGroup.get(this.field.id);
+    return this.formGroup.get(this.field().id);
   }
 
   showError(): boolean {

@@ -40,10 +40,8 @@ export class InputSelectorComponent {
     [InputType.GROUP]: faCalendar,
   };
 
-  // 4. Source array
   inputTypes = ['text', 'textarea', 'number', 'email', 'password', 'checkbox', 'radio', 'date'] as const;
 
-  // 5. Create the array of objects
   inputConfigs: InputConfig[] = this.inputTypes.map((type) => ({
     name: type.charAt(0).toUpperCase() + type.slice(1),
     type: InputType[type.toUpperCase() as keyof typeof InputType],
