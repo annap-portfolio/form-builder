@@ -3,7 +3,7 @@ import { Component, input, Input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGripVertical, faLinkSlash, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { FormElement } from '@models/form-definition.model';
+import { Field } from '@models/field.model';
 import { InputType } from '@models/input-type.model';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -33,7 +33,7 @@ import { TextareaModule } from 'primeng/textarea';
   styleUrl: './form-input.component.scss',
 })
 export class FormInputComponent {
-  field = input.required<FormElement>();
+  field = input.required<Field>();
   isInGroup = input<boolean>();
   @Input() formGroup!: FormGroup;
   openEditDialog = output<void>();

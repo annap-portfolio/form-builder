@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { CodeGeneratorService } from '@core/services/code-generator.service';
 import { DragDropService } from '@core/services/drag-drop.service';
 import { FormBuilderService } from '@core/services/form-builder.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -38,6 +39,7 @@ import { InputSelectorComponent } from './components/input-selector/input-select
 export class FormBuilderComponent implements OnInit {
   private formBuilderService = inject(FormBuilderService);
   private dragDropService = inject(DragDropService);
+  private codeGeneratorService = inject(CodeGeneratorService);
 
   screenWidth = signal(window.innerWidth);
   isMobile = computed(() => this.screenWidth() < 992);
@@ -57,6 +59,10 @@ export class FormBuilderComponent implements OnInit {
   isGroup = isGroup;
   isField = isField;
 
+  // Generated code
+  tsCode = '';
+  htmlCode = '';
+
   constructor() {
     window.addEventListener('resize', () => {
       this.screenWidth.set(window.innerWidth);
@@ -68,6 +74,9 @@ export class FormBuilderComponent implements OnInit {
     if (savedJson) {
       this.formDefinition = FormDefinition.fromJSON(savedJson);
       this.form = this.formBuilderService.buildForm(this.formDefinition);
+
+      this.tsCode = this.codeGeneratorService.generateFormGroupCode(this.formDefinition);
+      this.htmlCode = this.codeGeneratorService.generateHTMLTemplate(this.formDefinition);
     }
   }
 
