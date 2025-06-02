@@ -1,9 +1,11 @@
 import { Component, Input, input, OnInit, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Field } from '@models/field.model';
+import { FormElement } from '@models/form-definition.model';
+import { isGroup } from '@utils/form-element';
+import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { Field } from '../../../models/form.model';
-import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-field-edit-dialog',
@@ -12,29 +14,27 @@ import { ButtonModule } from 'primeng/button';
   styleUrl: './field-edit-dialog.component.scss',
 })
 export class FieldEditDialogComponent implements OnInit {
-  field = input<Field>();
+  element = input.required<FormElement>();
   @Input() isVisible = false;
   close = output<void>();
-  fieldChanged = output<Field>();
+  update = output<Field>();
 
   label = '';
-  placeholder = '';
+
+  isGroup = isGroup;
 
   ngOnInit() {
-    console.log(this.field());
-    this.label = this.field()?.label ?? '';
-    this.placeholder = this.field()?.placeholder ?? '';
+    this.label = this.element().label ?? '';
   }
 
   onSave(): void {
-    const f = this.field();
-    if (!f) return;
+    const original = this.element();
+    if (!original) return;
 
-    this.fieldChanged.emit({
-      ...f,
-      label: this.label,
-      placeholder: this.placeholder,
-    });
+    const savedElement = JSON.parse(JSON.stringify(original));
+    savedElement.label = this.label;
+
+    this.update.emit(savedElement);
     this.close.emit();
   }
 

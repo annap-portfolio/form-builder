@@ -1,7 +1,10 @@
 :host ::ng-deep {
   .edit-dialog {
     width: 500px;
-    // height: 300px;
+
+    &__header {
+      margin: 0;
+    }
 
     .p-dialog-content {
       display: flex;
@@ -15,6 +18,11 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  &__label {
+    font-weight: 600;
+    font-size: 15px;
+  }
 }
 
 .save-button {

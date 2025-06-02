@@ -3,6 +3,8 @@ import { Component, input, Input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGripVertical, faLinkSlash, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FormElement } from '@models/form-definition.model';
+import { InputType } from '@models/input-type.model';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -11,7 +13,6 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
-import { FormElement, InputType } from '../../../models/form.model';
 
 @Component({
   selector: 'app-form-input',

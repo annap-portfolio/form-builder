@@ -1,11 +1,17 @@
-<p-dialog [(visible)]="isVisible" header="Edit field" [modal]="true" styleClass="edit-dialog" (onHide)="onHide()">
+<p-dialog [(visible)]="isVisible" [modal]="true" styleClass="edit-dialog" (onHide)="onHide()">
+  <ng-template #header>
+    <h3 class="edit-dialog__header">
+      @if (isGroup(element())) {
+        Edit group
+      } @else {
+        Edit field
+      }
+    </h3>
+  </ng-template>
+
   <div class="field">
     <label class="field__label">Label</label>
     <input type="text" pInputText [(ngModel)]="label" />
-  </div>
-  <div class="field">
-    <label class="field__label">Placeholder</label>
-    <input type="text" pInputText [(ngModel)]="placeholder" />
   </div>
 
   <p-button Class="save-button" (click)="onSave()">Save</p-button>

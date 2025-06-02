@@ -26,19 +26,19 @@
 
 @if (isEditDialogVisible) {
   <app-field-edit-dialog
-    [field]="editedField()!"
+    [element]="editedElement()!"
     [isVisible]="isEditDialogVisible"
     (close)="onClose()"
-    (fieldChanged)="onFieldChanged($event)"
+    (update)="onElementUpdate($event)"
   ></app-field-edit-dialog>
 }
 
 <!-- Reusable templates -->
 <ng-template #formContent>
   <h2>Form</h2>
-  @if (formModel.fields.length > 0) {
+  @if (formDefinition.children.length > 0) {
     <div class="fields" [formGroup]="form">
-      @for (element of formModel.fields; track element.id; let i = $index) {
+      @for (element of formDefinition.children; track element.id; let i = $index) {
         <ng-container *ngTemplateOutlet="renderElement; context: { $implicit: element, index: i }"></ng-container>
       }
     </div>
@@ -67,14 +67,27 @@
         [formGroup]="group ?? form"
         [isInGroup]="!!parentGroup"
         (openEditDialog)="onOpenFieldEditDialog(element)"
-        (delete)="onFieldDelete(element, parentGroup)"
+        (delete)="onFormElementDelete(element, parentGroup)"
         (ungroup)="onFieldUngroup(element, parentGroup)"
       ></app-form-input>
     }
 
     @if (isGroup(element)) {
       <div class="group" *ngIf="getFormGroup(element) as group">
-        <h3 class="group__title">{{ element.label }}</h3>
+        <div class="group__header">
+          <h3 class="group__header__title">{{ element.label }}</h3>
+          <div class="group__header__actions">
+            <p-button variant="text" size="small" (click)="onOpenFieldEditDialog(element)">
+              <fa-icon [icon]="faPencil" size="sm"></fa-icon>
+            </p-button>
+            <p-button variant="text" size="small" (click)="onFormElementDelete(element)">
+              <fa-icon [icon]="faTrash" size="sm"></fa-icon>
+            </p-button>
+            <p-button variant="text" size="small" (click)="ungroupGroup(element)">
+              <fa-icon [icon]="faLinkSlash" size="sm"></fa-icon>
+            </p-button>
+          </div>
+        </div>
         <div class="group__fields">
           @for (child of element.children; track child.id; let j = $index) {
             <ng-container
@@ -93,6 +106,6 @@
 <ng-template #codeContent>
   <h2>Code</h2>
   <pre class="generated-code"
-    >{{ formModel | json }}
+    >{{ formDefinition | json }}
   </pre>
 </ng-template>

@@ -66,10 +66,19 @@
 }
 
 .group {
-  &__title {
-    font-size: 17px;
-    font-weight: 600;
-    margin: 0;
-    margin-left: 8px;
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &__title {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 0;
+      margin-left: 8px;
+    }
+
+    &__actions {
+    }
   }
 }

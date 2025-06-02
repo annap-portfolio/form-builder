@@ -4,7 +4,7 @@
 }
 
 .grip-handle {
-  margin-top: 8px;
+  margin-top: 4px;
 
   &:hover {
     cursor: grab;
@@ -15,7 +15,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 
   &__header {
     display: flex;
@@ -29,7 +29,7 @@
   }
 
   ::ng-deep {
-    .field__header__edit {
+    .field__header__action {
       padding: 5px;
       width: 24px;
       height: 24px;

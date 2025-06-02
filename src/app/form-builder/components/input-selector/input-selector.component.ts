@@ -8,11 +8,10 @@ import {
   faFont,
   faHashtag,
   faKey,
-  faStar,
   IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
+import { InputType } from '@models/input-type.model';
 import { ButtonModule } from 'primeng/button';
-import { InputType } from '../../../models/form.model';
 
 interface InputConfig {
   name: string;

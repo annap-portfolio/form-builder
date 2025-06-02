@@ -1,12 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { DragDropService } from '@core/services/drag-drop.service';
+import { FormBuilderService } from '@core/services/form-builder.service';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faLinkSlash, faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Field } from '@models/field.model';
+import { FormDefinition, FormElement } from '@models/form-definition.model';
+import { Group } from '@models/group.model';
+import { InputType } from '@models/input-type.model';
+import { isField, isGroup } from '@utils/form-element';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DragDropModule } from 'primeng/dragdrop';
 import { TabsModule } from 'primeng/tabs';
-import { FormBuilderService } from '../core/services/form-builder.service';
-import { Field, FormElement, FormModel, Group, InputType } from '../models/form.model';
 import { FieldEditDialogComponent } from './components/field-edit-dialog/field-edit-dialog.component';
 import { FormInputComponent } from './components/form-input/form-input.component';
 import { InputSelectorComponent } from './components/input-selector/input-selector.component';
@@ -23,25 +30,30 @@ import { InputSelectorComponent } from './components/input-selector/input-select
     DialogModule,
     TabsModule,
     DragDropModule,
+    FontAwesomeModule,
   ],
   templateUrl: './form-builder.component.html',
   styleUrl: './form-builder.component.scss',
 })
 export class FormBuilderComponent implements OnInit {
   private formBuilderService = inject(FormBuilderService);
+  private dragDropService = inject(DragDropService);
+
   screenWidth = signal(window.innerWidth);
   isMobile = computed(() => this.screenWidth() < 992);
 
-  formModel: FormModel = {
-    fields: [],
-  };
-
-  form: FormGroup = this.formBuilderService.buildForm(this.formModel);
+  formDefinition = new FormDefinition();
+  form: FormGroup = this.formBuilderService.buildForm(this.formDefinition);
 
   isEditDialogVisible = false;
-  editedField = signal<Field | null>(null);
+  editedElement = signal<FormElement | null>(null);
 
-  private draggedIndex: number | null = null;
+  faTrash = faTrash;
+  faPencil = faPencil;
+  faLinkSlash = faLinkSlash;
+
+  isGroup = isGroup;
+  isField = isField;
 
   constructor() {
     window.addEventListener('resize', () => {
@@ -49,87 +61,107 @@ export class FormBuilderComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    const saved = localStorage.getItem('formModel');
-    if (saved) {
-      this.formModel = JSON.parse(saved);
-      this.form = this.formBuilderService.buildForm(this.formModel);
-      console.log(this.form);
+  ngOnInit() {
+    const savedJson = localStorage.getItem('formBuilder');
+    if (savedJson) {
+      this.formDefinition = FormDefinition.fromJSON(savedJson);
+      console.log(this.formDefinition);
+      this.form = this.formBuilderService.buildForm(this.formDefinition);
     }
   }
 
-  onInputSelected(type: InputType): void {
-    const newField: Field = {
-      id: crypto.randomUUID(),
-      type,
-      label: `${type.charAt(0).toUpperCase()}${type.slice(1)} Field`,
-      placeholder: `Enter ${type}`,
-      validators: [],
-    };
+  onInputSelected(type: InputType) {
+    const newField = new Field(type);
 
-    this.formModel.fields.push(newField);
-
-    // Rebuild form with updated model
-    this.form = this.formBuilderService.buildForm(this.formModel);
+    this.formDefinition.addChild(newField);
+    this.form = this.formBuilderService.buildForm(this.formDefinition);
 
     this.saveFormModel();
   }
 
-  onOpenFieldEditDialog(field: FormElement): void {
-    if (this.isField(field)) {
-      this.isEditDialogVisible = true;
-      this.editedField.set(field);
-    }
+  onOpenFieldEditDialog(field: FormElement) {
+    this.isEditDialogVisible = true;
+    this.editedElement.set(field);
   }
 
-  onFieldDelete(field: FormElement, parentGroup: Group | undefined): void {
-    if (!this.isField(field)) return;
+  onFormElementDelete(element: FormElement, parentGroup?: Group) {
+    if (isGroup(element)) {
+      this.deleteGroup(element);
+    } else if (isField(element)) {
+      this.deleteField(element, parentGroup);
+    }
+    this.saveFormModel();
+  }
 
+  private deleteGroup(group: Group) {
+    this.formDefinition.removeChildById(group.id);
+    if (this.form?.contains(group.id)) {
+      this.form.removeControl(group.id);
+    }
+    this.saveFormModel();
+  }
+
+  private deleteField(field: Field, parentGroup: Group | undefined) {
     if (parentGroup) {
-      // Field is inside a group
-      const groupIndex = this.formModel.fields.findIndex((f) => f.id === parentGroup.id);
-      if (groupIndex === -1) return;
+      // Remove from group
+      parentGroup.removeChild(field.id);
 
-      // Remove from group's children
-      parentGroup.children = parentGroup.children.filter((child) => child.id !== field.id);
-
-      // Remove control from group FormGroup
-      const groupForm = this.form.get(parentGroup.id) as FormGroup;
-      if (groupForm && groupForm.contains(field.id)) {
-        groupForm.removeControl(field.id);
+      const groupControl = this.form.get(parentGroup.id) as FormGroup;
+      if (groupControl?.contains(field.id)) {
+        groupControl.removeControl(field.id);
       }
 
-      // If group is empty after deletion, remove it
-      if (parentGroup.children.length === 0) {
-        this.formModel.fields.splice(groupIndex, 1);
+      if (parentGroup.isEmpty()) {
+        this.formDefinition.removeChildById(parentGroup.id);
         this.form.removeControl(parentGroup.id);
       }
     } else {
-      // Field is at top level
-      this.formModel.fields = this.formModel.fields.filter((f) => f.id !== field.id);
+      // Remove top-level field
+      this.formDefinition.removeChildById(field.id);
       this.form.removeControl(field.id);
     }
 
-    this.editedField.set(null);
+    this.editedElement.set(null);
     this.isEditDialogVisible = false;
     this.saveFormModel();
   }
 
-  onFieldUngroup(field: FormElement, parentGroup: Group | undefined): void {
-    if (!parentGroup || !this.isGroup(parentGroup)) return;
+  ungroupGroup(group: FormElement): void {
+    if (!isGroup(group)) return;
 
-    const parentGroupIndex = this.formModel.fields.findIndex((el) => el.id === parentGroup.id);
-    if (parentGroupIndex === -1) return;
+    const typedGroup = group as Group;
+    const groupControl = this.form.get(group.id) as FormGroup;
 
-    const fieldIndexInGroup = parentGroup.children.findIndex((child) => child.id === field.id);
-    if (fieldIndexInGroup === -1) return;
+    // Loop backwards so splice order doesn't matter
+    for (let i = typedGroup.children.length - 1; i >= 0; i--) {
+      const child = typedGroup.children[i];
 
-    // Remove the field from the group's children
-    parentGroup.children.splice(fieldIndexInGroup, 1);
+      typedGroup.removeChild(child.id);
+
+      const control = groupControl?.get(child.id);
+      if (control) {
+        groupControl.removeControl(child.id);
+        this.form.addControl(child.id, control);
+      }
+
+      this.formDefinition.replaceChild(group, child);
+    }
+
+    this.formDefinition.removeChildById(group.id);
+    this.form.removeControl(group.id);
+
+    this.saveFormModel();
+  }
+
+  onFieldUngroup(field: FormElement, parentGroup: Group | undefined) {
+    if (!parentGroup || !isGroup(parentGroup)) return;
+
+    // Remove the field from the group
+    parentGroup.removeChild(field.id);
 
     // Remove control from group FormGroup
     const groupControl = this.form.get(parentGroup.id) as FormGroup;
-    if (groupControl && groupControl.contains(field.id)) {
+    if (groupControl?.contains(field.id)) {
       const control = groupControl.get(field.id);
       groupControl.removeControl(field.id);
 
@@ -140,12 +172,12 @@ export class FormBuilderComponent implements OnInit {
     }
 
     // Insert the field back into the top-level fields array after the group
-    this.formModel.fields.splice(parentGroupIndex + 1, 0, field);
+    this.formDefinition.replaceChild(parentGroup, field);
 
-    // If the group is now empty, remove it
-    if (parentGroup.children.length === 0) {
-      this.formModel.fields.splice(parentGroupIndex, 1);
-      this.form.removeControl(parentGroup.id); // Also remove group FormGroup
+    // Remove the group if it's now empty
+    if (parentGroup.isEmpty()) {
+      this.formDefinition.removeChildById(parentGroup.id);
+      this.form.removeControl(parentGroup.id);
     }
 
     this.saveFormModel();
@@ -155,116 +187,60 @@ export class FormBuilderComponent implements OnInit {
     this.isEditDialogVisible = false;
   }
 
-  onFieldChanged(updatedField: Field): void {
-    const index = this.formModel.fields.findIndex((f) => f.id === updatedField.id);
-    if (index > -1) {
-      this.formModel.fields[index] = updatedField;
+  onElementUpdate(updatedField: Field) {
+    const updated = this.formDefinition.updateField(updatedField);
+    if (!updated) return;
 
-      // Update the form control as well, in case anything structural changes later
-      if (this.form.contains(updatedField.id)) {
-        this.form.get(updatedField.id)?.setValue(updatedField.value ?? null);
-      }
-
-      this.saveFormModel();
+    const control = this.findControlById(updatedField.id);
+    if (control) {
+      control.setValue(updatedField.value ?? null);
     }
+
+    this.saveFormModel();
   }
 
   onDragStart(index: number) {
-    this.draggedIndex = index;
+    this.dragDropService.startDrag(index);
   }
 
-  onDropField(targetIndex: number): void {
-    if (this.draggedIndex == null || targetIndex == null || this.draggedIndex === targetIndex) return;
-
-    const draggedElement = this.formModel.fields[this.draggedIndex];
-    const targetElement = this.formModel.fields[targetIndex];
-
-    // Cannot drag a group
-    if (this.isGroup(draggedElement)) {
-      this.resetDrag();
-      return;
-    }
-
-    // Dropping a field onto an existing group -> add to group's children
-    if (this.isField(draggedElement) && this.isGroup(targetElement)) {
-      targetElement.children.push(draggedElement);
-
-      // Remove from top-level
-      this.formModel.fields.splice(this.draggedIndex, 1);
-
-      // Register control in the form
-      if (!this.form.contains(draggedElement.id)) {
-        const control = this.formBuilderService.createControl(draggedElement);
-        this.form.addControl(draggedElement.id, control);
-      }
-
-      this.resetDrag();
-      this.saveFormModel();
-      return;
-    }
-
-    // Dropping a field onto another field -> create a new group
-    if (this.isField(targetElement) && this.isField(draggedElement)) {
-      const newGroup: Group = {
-        id: crypto.randomUUID(),
-        type: InputType.GROUP,
-        label: 'New Group',
-        children: [targetElement, draggedElement],
-      };
-
-      this.formModel.fields[targetIndex] = newGroup;
-      this.formModel.fields.splice(this.draggedIndex, 1);
-
-      // Create a nested FormGroup for the new group
-      const groupForm = this.formBuilderService.createGroup(newGroup);
-
-      // Add the group to the top-level form under its ID
-      this.form.addControl(newGroup.id, groupForm);
-
-      this.resetDrag();
+  onDropField(targetIndex: number) {
+    const updated = this.dragDropService.dropField(this.formDefinition, this.form, targetIndex);
+    if (updated) {
       this.saveFormModel();
     }
   }
 
-  private resetDrag() {
-    this.draggedIndex = null;
-  }
-
-  isField(element: FormElement): element is Field {
-    if (!element) return false;
-    return element.type !== InputType.GROUP;
-  }
-
-  isGroup(element: FormElement): element is Group {
-    if (!element) return false;
-    return element.type === InputType.GROUP;
-  }
-
-  onDropDivider(targetIndex: number): void {
-    if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
-
-    const field = this.formModel.fields[this.draggedIndex];
-
-    // Remove from old position
-    this.formModel.fields.splice(this.draggedIndex, 1);
-
-    // Insert at new position
-    const adjustedIndex = this.draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
-    this.formModel.fields.splice(adjustedIndex, 0, field);
-
-    this.draggedIndex = null;
+  onDropDivider(targetIndex: number) {
+    this.dragDropService.dropDivider(this.formDefinition, targetIndex);
     this.saveFormModel();
   }
 
   getFormGroup(group: Group): FormGroup | null {
-    if (this.isGroup(group)) {
+    if (isGroup(group)) {
       return this.form.controls[group.id] as FormGroup;
     } else {
       return null;
     }
   }
 
-  private saveFormModel(): void {
-    localStorage.setItem('formModel', JSON.stringify(this.formModel));
+  private saveFormModel() {
+    localStorage.setItem('formBuilder', this.formDefinition.toJSON());
+  }
+
+  private findControlById(id: string): FormControl | null {
+    if (this.form.contains(id)) {
+      return this.form.get(id) as FormControl;
+    }
+
+    for (const element of this.formDefinition.children) {
+      if (element instanceof Group) {
+        const groupControl = this.form.get(element.id) as FormGroup;
+        if (groupControl?.contains(id)) {
+          return groupControl.get(id) as FormControl;
+        }
+      }
+    }
+
+    return null;
   }
 }

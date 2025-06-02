@@ -3,14 +3,14 @@
 <div class="field" [formGroup]="formGroup">
   <div class="field__header">
     <label [for]="field.id" class="field__header__label">{{ field.label }}</label>
-    <p-button size="small" variant="text" styleClass="field__header__edit" (click)="openEditDialog.emit()">
+    <p-button size="small" variant="text" styleClass="field__header__action" (click)="openEditDialog.emit()">
       <fa-icon [icon]="faPencil" size="sm"></fa-icon>
     </p-button>
-    <p-button size="small" variant="text" styleClass="field__header__delete" (click)="delete.emit()">
+    <p-button size="small" variant="text" styleClass="field__header__action" (click)="delete.emit()">
       <fa-icon [icon]="faTrash" size="sm"></fa-icon>
     </p-button>
     @if (isInGroup()) {
-      <p-button size="small" variant="text" styleClass="field__header__ungroup" (click)="ungroup.emit()">
+      <p-button size="small" variant="text" styleClass="field__header__action" (click)="ungroup.emit()">
         <fa-icon [icon]="faLinkSlash" size="sm"></fa-icon>
       </p-button>
     }
@@ -23,7 +23,6 @@
     [id]="field.id"
     [type]="field.type"
     [formControlName]="field.id"
-    [placeholder]="field.placeholder"
     lass="field"
   />
 
@@ -32,7 +31,6 @@
     *ngIf="field.type === InputType.NUMBER"
     [inputId]="field.id"
     [formControlName]="field.id"
-    [placeholder]="field.placeholder"
     inputStyleClass="w-full"
     styleClass="field"
   ></p-inputNumber>
@@ -43,7 +41,6 @@
     [inputId]="field.id"
     [formControlName]="field.id"
     [options]="field.options ?? []"
-    [placeholder]="field.placeholder"
     optionLabel=""
     class="w-full"
     styleClass="field"
@@ -55,7 +52,6 @@
     [inputId]="field.id"
     [formControlName]="field.id"
     [options]="field.options ?? []"
-    [placeholder]="field.placeholder"
     class="w-full"
     styleClass="field"
   ></p-multiSelect>

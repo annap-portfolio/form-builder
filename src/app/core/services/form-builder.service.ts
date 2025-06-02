@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
-import { FormModel, Field, Group, ValidatorConfig, FormElement, InputType } from '../../models/form.model';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Field } from '@models/field.model';
+import { FormDefinition, FormElement, ValidatorConfig } from '@models/form-definition.model';
+import { Group } from '@models/group.model';
+import { InputType } from '@models/input-type.model';
 
 @Injectable({ providedIn: 'root' })
 export class FormBuilderService {
   constructor(private fb: FormBuilder) {}
 
-  buildForm(model: FormModel): FormGroup {
-    const controls = this.buildControls(model.fields);
+  buildForm(form: FormDefinition): FormGroup {
+    const controls = this.buildControls([...form.children]);
     return this.fb.group(controls);
   }
 
