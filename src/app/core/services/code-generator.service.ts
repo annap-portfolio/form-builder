@@ -7,7 +7,7 @@ import { InputType } from '@models/input-type.model';
 
 @Injectable({ providedIn: 'root' })
 export class CodeGeneratorService {
-  generateFormGroupCode(formDefinition: FormDefinition): string {
+  generateTypescriptCode(formDefinition: FormDefinition): string {
     const children = [...formDefinition.children];
     const formControls = this.generateControls(children);
 
@@ -92,7 +92,7 @@ export class CodeGeneratorService {
         case InputType.NUMBER:
           return `${pad}<input\n${pad}${pad}id="${field.id}"\n${pad}${pad}formControlName="${field.id}"\n${pad}${pad}type="${field.type}" />`;
         case InputType.TEXTAREA:
-          return `${pad}<textarea\n${pad}${pad}id="${field.id}"\n${pad}${pad}formControlName="${field.id}"></textarea>`;
+          return `${pad}<textarea\n${pad}${pad}id="${field.id}"\n${pad}${pad}formControlName="${field.id}">\n${pad}</textarea>`;
         case InputType.CHECKBOX:
           return `${pad}<input\n${pad}${pad}id="${field.id}"\n${pad}${pad}formControlName="${field.id}"\n${pad}${pad}type="checkbox" />`;
         case InputType.RADIO:

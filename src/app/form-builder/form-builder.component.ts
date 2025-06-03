@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CodeGeneratorService } from '@core/services/code-generator.service';
 import { DragDropService } from '@core/services/drag-drop.service';
 import { FormBuilderService } from '@core/services/form-builder.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -17,7 +16,6 @@ import { DragDropModule } from 'primeng/dragdrop';
 import { TabsModule } from 'primeng/tabs';
 import { FieldEditDialogComponent } from './components/field-edit-dialog/field-edit-dialog.component';
 import { FormInputComponent } from './components/form-input/form-input.component';
-import { InputSelectorComponent } from './components/input-selector/input-selector.component';
 
 @Component({
   selector: 'app-form-builder',
@@ -25,7 +23,6 @@ import { InputSelectorComponent } from './components/input-selector/input-select
     CommonModule,
     ButtonModule,
     ReactiveFormsModule,
-    InputSelectorComponent,
     FormInputComponent,
     FieldEditDialogComponent,
     DialogModule,
@@ -37,12 +34,11 @@ import { InputSelectorComponent } from './components/input-selector/input-select
   styleUrl: './form-builder.component.scss',
 })
 export class FormBuilderComponent implements OnInit {
+  addedFieldType = input<InputType | null>();
+  change = output<FormDefinition>();
+
   private formBuilderService = inject(FormBuilderService);
   private dragDropService = inject(DragDropService);
-  private codeGeneratorService = inject(CodeGeneratorService);
-
-  screenWidth = signal(window.innerWidth);
-  isMobile = computed(() => this.screenWidth() < 992);
 
   formDefinition = new FormDefinition();
   form: FormGroup = this.formBuilderService.buildForm(this.formDefinition);
@@ -59,13 +55,11 @@ export class FormBuilderComponent implements OnInit {
   isGroup = isGroup;
   isField = isField;
 
-  // Generated code
-  tsCode = '';
-  htmlCode = '';
-
   constructor() {
-    window.addEventListener('resize', () => {
-      this.screenWidth.set(window.innerWidth);
+    effect(() => {
+      if (!!this.addedFieldType()) {
+        this.onInputSelected(this.addedFieldType()!);
+      }
     });
   }
 
@@ -74,8 +68,6 @@ export class FormBuilderComponent implements OnInit {
     if (savedJson) {
       this.formDefinition = FormDefinition.fromJSON(savedJson);
       this.form = this.formBuilderService.buildForm(this.formDefinition);
-
-      this.generateCode();
     }
   }
 
@@ -85,7 +77,7 @@ export class FormBuilderComponent implements OnInit {
     this.formDefinition.addChild(newField);
     this.form = this.formBuilderService.buildForm(this.formDefinition);
 
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   onOpenFieldEditDialog(field: FormElement) {
@@ -99,7 +91,7 @@ export class FormBuilderComponent implements OnInit {
     } else if (isField(element)) {
       this.deleteField(element, parentGroup);
     }
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   onUngroupGroup(group: FormElement): void {
@@ -126,7 +118,7 @@ export class FormBuilderComponent implements OnInit {
     this.formDefinition.removeChildById(group.id);
     this.form.removeControl(group.id);
 
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   onFieldUngroup(field: FormElement, parentGroup: Group | undefined) {
@@ -156,7 +148,7 @@ export class FormBuilderComponent implements OnInit {
       this.form.removeControl(parentGroup.id);
     }
 
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   onClose() {
@@ -172,7 +164,7 @@ export class FormBuilderComponent implements OnInit {
       control.setValue(updatedField.value ?? null);
     }
 
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   onDragStart(element: FormElement) {
@@ -182,13 +174,13 @@ export class FormBuilderComponent implements OnInit {
   onDropField(targetIndex: number) {
     const updated = this.dragDropService.dropField(this.formDefinition, this.form, targetIndex);
     if (updated) {
-      this.saveAndGenerateCode();
+      this.saveFormModel();
     }
   }
 
   onDropDivider(targetIndex: number, parentGroup?: Group) {
     this.dragDropService.dropDivider(this.formDefinition, targetIndex, parentGroup);
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   getFormGroup(group: Group): FormGroup | null {
@@ -204,7 +196,7 @@ export class FormBuilderComponent implements OnInit {
     if (this.form?.contains(group.id)) {
       this.form.removeControl(group.id);
     }
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   private deleteField(field: Field, parentGroup: Group | undefined) {
@@ -229,7 +221,7 @@ export class FormBuilderComponent implements OnInit {
 
     this.editedElement.set(null);
     this.isEditDialogVisible = false;
-    this.saveAndGenerateCode();
+    this.saveFormModel();
   }
 
   private findControlById(id: string): FormControl | null {
@@ -249,18 +241,8 @@ export class FormBuilderComponent implements OnInit {
     return null;
   }
 
-  private saveAndGenerateCode() {
-    this.saveFormModel();
-    this.generateCode();
-  }
-
   private saveFormModel() {
+    this.change.emit(this.formDefinition);
     localStorage.setItem('formBuilder', this.formDefinition.toJSON());
-    this.generateCode();
-  }
-
-  private generateCode() {
-    this.tsCode = this.codeGeneratorService.generateFormGroupCode(this.formDefinition);
-    this.htmlCode = this.codeGeneratorService.generateHTMLTemplate(this.formDefinition);
   }
 }

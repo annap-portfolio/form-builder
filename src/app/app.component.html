@@ -1,3 +1,35 @@
-<app-header></app-header>
-<p-divider></p-divider>
-<app-form-builder></app-form-builder>
+<header>
+  <app-header [title]="title"></app-header>
+  <p-divider></p-divider>
+</header>
+
+<div class="sidebar">
+  <app-input-selector (inputSelected)="onInputSelected($event)"></app-input-selector>
+</div>
+
+<div class="content">
+  @if (isMobile()) {
+    <p-tabs value="0">
+      <p-tablist>
+        <p-tab value="0">Form</p-tab>
+        <p-tab value="1">Code</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <app-form-builder [addedFieldType]="fieldTypeToAdd()" (change)="onFormChange($event)"></app-form-builder>
+        </p-tabpanel>
+        <p-tabpanel value="1">
+          <app-generated-code [typescriptCode]="typescriptCode()" [htmlCode]="htmlCode()"></app-generated-code>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  } @else {
+    <div class="form-column">
+      <app-form-builder [addedFieldType]="fieldTypeToAdd()" (change)="onFormChange($event)"></app-form-builder>
+    </div>
+    <p-divider layout="vertical" />
+    <div class="code-column">
+      <app-generated-code [typescriptCode]="typescriptCode()" [htmlCode]="htmlCode()"></app-generated-code>
+    </div>
+  }
+</div>

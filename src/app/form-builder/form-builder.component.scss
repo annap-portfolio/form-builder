@@ -1,22 +1,3 @@
-:host {
-  display: grid;
-  grid-template-columns: 148px 1fr;
-  gap: 16px;
-
-  @media (min-width: 992px) {
-    display: grid;
-    grid-template-columns: 148px 1fr 1fr;
-    gap: 16px;
-  }
-
-  ::ng-deep {
-    .p-tabpanels {
-      height: calc(100vh - 152px);
-      overflow: auto;
-    }
-  }
-}
-
 .fields {
   display: flex;
   flex-direction: column;
