@@ -51,28 +51,11 @@
 </ng-template>
 
 <ng-template #renderElement let-element let-index="index" let-parentGroup="parentGroup" let-group="group">
-  <div class="field-divider" (onDrop)="onDropDivider(index)" pDroppable></div>
+  <div class="field-divider" (onDrop)="onDropDivider(index, parentGroup)" pDroppable></div>
 
-  <div
-    class="field-wrapper"
-    [ngClass]="{ 'field-wrapper--group': isGroup(element) }"
-    pDraggable
-    (onDragStart)="onDragStart(index)"
-    (onDrop)="onDropField(index)"
-    pDroppable
-  >
-    @if (isField(element)) {
-      <app-form-input
-        [field]="element"
-        [formGroup]="group ?? form"
-        [isInGroup]="!!parentGroup"
-        (openEditDialog)="onOpenFieldEditDialog(element)"
-        (delete)="onFormElementDelete(element, parentGroup)"
-        (ungroup)="onFieldUngroup(element, parentGroup)"
-      ></app-form-input>
-    }
-
-    @if (isGroup(element)) {
+  <!-- GROUP: Not draggable, but droppable -->
+  @if (isGroup(element)) {
+    <div class="field-wrapper field-wrapper--group" pDroppable (onDrop)="onDropField(index)">
       <div class="group" *ngIf="getFormGroup(element) as group">
         <div class="group__header">
           <h3 class="group__header__title">{{ element.label }}</h3>
@@ -83,11 +66,12 @@
             <p-button variant="text" size="small" (click)="onFormElementDelete(element)">
               <fa-icon [icon]="faTrash" size="sm"></fa-icon>
             </p-button>
-            <p-button variant="text" size="small" (click)="ungroupGroup(element)">
+            <p-button variant="text" size="small" (click)="onUngroupGroup(element)">
               <fa-icon [icon]="faLinkSlash" size="sm"></fa-icon>
             </p-button>
           </div>
         </div>
+
         <div class="group__fields">
           @for (child of element.children; track child.id; let j = $index) {
             <ng-container
@@ -99,8 +83,35 @@
           }
         </div>
       </div>
-    }
-  </div>
+    </div>
+  }
+
+  <!-- FIELD: Top-level (droppable + draggable) -->
+  @else if (!parentGroup) {
+    <div class="field-wrapper" pDroppable pDraggable (onDrop)="onDropField(index)" (onDragStart)="onDragStart(element)">
+      <app-form-input
+        [field]="element"
+        [formGroup]="form"
+        [isInGroup]="false"
+        (openEditDialog)="onOpenFieldEditDialog(element)"
+        (delete)="onFormElementDelete(element)"
+      ></app-form-input>
+    </div>
+  }
+
+  <!-- FIELD: Nested inside a group (draggable only) -->
+  @else {
+    <div class="field-wrapper" pDraggable (onDragStart)="onDragStart(element)">
+      <app-form-input
+        [field]="element"
+        [formGroup]="group"
+        [isInGroup]="true"
+        (openEditDialog)="onOpenFieldEditDialog(element)"
+        (delete)="onFormElementDelete(element, parentGroup)"
+        (ungroup)="onFieldUngroup(element, parentGroup)"
+      ></app-form-input>
+    </div>
+  }
 </ng-template>
 
 <ng-template #codeContent>
@@ -109,6 +120,7 @@
   <pre class="generated-code"
     >{{ tsCode }}
   </pre>
+
   <h3>HTML</h3>
   <pre class="generated-code"
     >{{ htmlCode }}

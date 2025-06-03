@@ -140,7 +140,7 @@ describe('FormBuilderComponent', () => {
     groupControl.removeControl = jasmine.createSpy('removeControl');
     component.form.removeControl = jasmine.createSpy('removeControl');
 
-    component.ungroupGroup(group);
+    component.onUngroupGroup(group);
 
     expect(group.children.length).toBe(0);
     expect(component.formDefinition.children.find((c) => c.id === group.id)).toBeUndefined();

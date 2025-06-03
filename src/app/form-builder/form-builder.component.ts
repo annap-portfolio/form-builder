@@ -75,8 +75,7 @@ export class FormBuilderComponent implements OnInit {
       this.formDefinition = FormDefinition.fromJSON(savedJson);
       this.form = this.formBuilderService.buildForm(this.formDefinition);
 
-      this.tsCode = this.codeGeneratorService.generateFormGroupCode(this.formDefinition);
-      this.htmlCode = this.codeGeneratorService.generateHTMLTemplate(this.formDefinition);
+      this.generateCode();
     }
   }
 
@@ -86,7 +85,7 @@ export class FormBuilderComponent implements OnInit {
     this.formDefinition.addChild(newField);
     this.form = this.formBuilderService.buildForm(this.formDefinition);
 
-    this.saveFormModel();
+    this.saveAndGenerateCode();
   }
 
   onOpenFieldEditDialog(field: FormElement) {
@@ -100,10 +99,10 @@ export class FormBuilderComponent implements OnInit {
     } else if (isField(element)) {
       this.deleteField(element, parentGroup);
     }
-    this.saveFormModel();
+    this.saveAndGenerateCode();
   }
 
-  ungroupGroup(group: FormElement): void {
+  onUngroupGroup(group: FormElement): void {
     if (!isGroup(group)) return;
 
     const typedGroup = group as Group;
@@ -113,7 +112,7 @@ export class FormBuilderComponent implements OnInit {
     for (let i = typedGroup.children.length - 1; i >= 0; i--) {
       const child = typedGroup.children[i];
 
-      typedGroup.removeChild(child.id);
+      typedGroup.removeChildById(child.id);
 
       const control = groupControl?.get(child.id);
       if (control) {
@@ -127,14 +126,14 @@ export class FormBuilderComponent implements OnInit {
     this.formDefinition.removeChildById(group.id);
     this.form.removeControl(group.id);
 
-    this.saveFormModel();
+    this.saveAndGenerateCode();
   }
 
   onFieldUngroup(field: FormElement, parentGroup: Group | undefined) {
     if (!parentGroup || !isGroup(parentGroup)) return;
 
     // Remove the field from the group
-    parentGroup.removeChild(field.id);
+    parentGroup.removeChildById(field.id);
 
     // Remove control from group FormGroup
     const groupControl = this.form.get(parentGroup.id) as FormGroup;
@@ -157,7 +156,7 @@ export class FormBuilderComponent implements OnInit {
       this.form.removeControl(parentGroup.id);
     }
 
-    this.saveFormModel();
+    this.saveAndGenerateCode();
   }
 
   onClose() {
@@ -173,23 +172,23 @@ export class FormBuilderComponent implements OnInit {
       control.setValue(updatedField.value ?? null);
     }
 
-    this.saveFormModel();
+    this.saveAndGenerateCode();
   }
 
-  onDragStart(index: number) {
-    this.dragDropService.startDrag(index);
+  onDragStart(element: FormElement) {
+    this.dragDropService.startDrag(element);
   }
 
   onDropField(targetIndex: number) {
     const updated = this.dragDropService.dropField(this.formDefinition, this.form, targetIndex);
     if (updated) {
-      this.saveFormModel();
+      this.saveAndGenerateCode();
     }
   }
 
-  onDropDivider(targetIndex: number) {
-    this.dragDropService.dropDivider(this.formDefinition, targetIndex);
-    this.saveFormModel();
+  onDropDivider(targetIndex: number, parentGroup?: Group) {
+    this.dragDropService.dropDivider(this.formDefinition, targetIndex, parentGroup);
+    this.saveAndGenerateCode();
   }
 
   getFormGroup(group: Group): FormGroup | null {
@@ -205,13 +204,13 @@ export class FormBuilderComponent implements OnInit {
     if (this.form?.contains(group.id)) {
       this.form.removeControl(group.id);
     }
-    this.saveFormModel();
+    this.saveAndGenerateCode();
   }
 
   private deleteField(field: Field, parentGroup: Group | undefined) {
     if (parentGroup) {
       // Remove from group
-      parentGroup.removeChild(field.id);
+      parentGroup.removeChildById(field.id);
 
       const groupControl = this.form.get(parentGroup.id) as FormGroup;
       if (groupControl?.contains(field.id)) {
@@ -230,11 +229,7 @@ export class FormBuilderComponent implements OnInit {
 
     this.editedElement.set(null);
     this.isEditDialogVisible = false;
-    this.saveFormModel();
-  }
-
-  private saveFormModel() {
-    localStorage.setItem('formBuilder', this.formDefinition.toJSON());
+    this.saveAndGenerateCode();
   }
 
   private findControlById(id: string): FormControl | null {
@@ -252,5 +247,20 @@ export class FormBuilderComponent implements OnInit {
     }
 
     return null;
+  }
+
+  private saveAndGenerateCode() {
+    this.saveFormModel();
+    this.generateCode();
+  }
+
+  private saveFormModel() {
+    localStorage.setItem('formBuilder', this.formDefinition.toJSON());
+    this.generateCode();
+  }
+
+  private generateCode() {
+    this.tsCode = this.codeGeneratorService.generateFormGroupCode(this.formDefinition);
+    this.htmlCode = this.codeGeneratorService.generateHTMLTemplate(this.formDefinition);
   }
 }
