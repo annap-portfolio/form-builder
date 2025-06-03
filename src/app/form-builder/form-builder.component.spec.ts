@@ -164,9 +164,10 @@ describe('FormBuilderComponent', () => {
 
   it('should call dragDropService methods and save form', () => {
     dragDropService.dropField.and.returnValue(true);
+    const field = new Field(InputType.TEXT);
 
-    component.onDragStart(1);
-    expect(dragDropService.startDrag).toHaveBeenCalledWith(1);
+    component.onDragStart(field);
+    expect(dragDropService.startDrag).toHaveBeenCalledWith(field);
 
     component.onDropField(2);
     expect(dragDropService.dropField).toHaveBeenCalled();
@@ -175,7 +176,7 @@ describe('FormBuilderComponent', () => {
     component.onDropField(3);
 
     component.onDropDivider(4);
-    expect(dragDropService.dropDivider).toHaveBeenCalledWith(component.formDefinition, 4);
+    expect(dragDropService.dropDivider).toHaveBeenCalledWith(component.formDefinition, 4, undefined);
   });
 
   it('should get FormGroup for a group element', () => {

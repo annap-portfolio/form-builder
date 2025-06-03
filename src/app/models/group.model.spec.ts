@@ -29,7 +29,7 @@ describe('Group', () => {
 
   it('should remove a child by id', () => {
     group.addChild(field2);
-    group.removeChild(field1.id);
+    group.removeChildById(field1.id);
     expect(group.children.length).toBe(1);
     expect(group.children[0]).toBe(field2);
   });
@@ -41,7 +41,7 @@ describe('Group', () => {
 
   it('should detect if group is empty', () => {
     expect(group.isEmpty()).toBeFalse();
-    group.removeChild(field1.id);
+    group.removeChildById(field1.id);
     expect(group.isEmpty()).toBeTrue();
   });
 
