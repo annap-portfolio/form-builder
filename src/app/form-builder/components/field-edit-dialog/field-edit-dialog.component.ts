@@ -1,8 +1,8 @@
 import { Component, Input, input, OnInit, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Field } from '@models/field.model';
 import { FormElement } from '@models/form-definition.model';
 import { isGroup } from '@utils/form-element';
+import clone from 'clone';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -17,7 +17,7 @@ export class FieldEditDialogComponent implements OnInit {
   element = input.required<FormElement>();
   @Input() isVisible = false;
   close = output<void>();
-  update = output<Field>();
+  update = output<FormElement>();
 
   label = '';
   isGroup = isGroup;
@@ -30,7 +30,7 @@ export class FieldEditDialogComponent implements OnInit {
     const original = this.element();
     if (!original) return;
 
-    const savedElement = JSON.parse(JSON.stringify(original));
+    const savedElement = clone(original);
     savedElement.label = this.label;
 
     this.update.emit(savedElement);

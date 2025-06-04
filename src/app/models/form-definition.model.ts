@@ -41,18 +41,31 @@ export class FormDefinition {
     this._children = this.children.filter((f) => f.id !== id);
   }
 
-  updateField(updated: Field): boolean {
+  updateElement(updated: FormElement): boolean {
     for (let i = 0; i < this.children.length; i++) {
       const element = this.children[i];
-      if (element.id === updated.id && element instanceof Field) {
-        Object.assign(element, updated);
-        return true;
-      } else if (element instanceof Group) {
+
+      // Direct match at root level
+      if (element.id === updated.id) {
+        if (element instanceof Field && updated instanceof Field) {
+          Object.assign(element, updated);
+          return true;
+        }
+
+        if (element instanceof Group && updated instanceof Group) {
+          element.label = updated.label; // Only allow label updates for groups
+          return true;
+        }
+      }
+
+      // Recurse into nested groups
+      if (element instanceof Group && updated instanceof Field) {
         if (element.updateChild(updated)) {
           return true;
         }
       }
     }
+
     return false;
   }
 

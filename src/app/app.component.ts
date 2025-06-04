@@ -6,7 +6,7 @@ import { GeneratedCodeComponent } from './generated-code/generated-code.componen
 import { CodeGeneratorService } from '@core/services/code-generator.service';
 import { FormDefinition } from '@models/form-definition.model';
 import { TabsModule } from 'primeng/tabs';
-import { InputSelectorComponent } from './form-builder/components/input-selector/input-selector.component';
+import { InputSelectorComponent } from './input-selector/input-selector.component';
 import { InputType } from '@models/input-type.model';
 
 @Component({

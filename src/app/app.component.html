@@ -1,7 +1,10 @@
 <header>
   <app-header [title]="title"></app-header>
-  <p-divider></p-divider>
 </header>
+
+<div class="divider">
+  <p-divider></p-divider>
+</div>
 
 <div class="sidebar">
   <app-input-selector (inputSelected)="onInputSelected($event)"></app-input-selector>

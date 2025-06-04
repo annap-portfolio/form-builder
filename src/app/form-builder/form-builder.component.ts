@@ -68,6 +68,8 @@ export class FormBuilderComponent implements OnInit {
     if (savedJson) {
       this.formDefinition = FormDefinition.fromJSON(savedJson);
       this.form = this.formBuilderService.buildForm(this.formDefinition);
+
+      this.saveFormModel();
     }
   }
 
@@ -155,14 +157,9 @@ export class FormBuilderComponent implements OnInit {
     this.isEditDialogVisible = false;
   }
 
-  onElementUpdate(updatedField: Field) {
-    const updated = this.formDefinition.updateField(updatedField);
+  onElementUpdate(updatedField: FormElement) {
+    const updated = this.formDefinition.updateElement(updatedField);
     if (!updated) return;
-
-    const control = this.findControlById(updatedField.id);
-    if (control) {
-      control.setValue(updatedField.value ?? null);
-    }
 
     this.saveFormModel();
   }
