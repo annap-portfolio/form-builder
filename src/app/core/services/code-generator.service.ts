@@ -52,7 +52,7 @@ export class CodeGeneratorService {
     return elements
       .map((element) => {
         if (isField(element)) {
-          return this.generateFieldControl(element, padding);
+          return this.generateFieldControl(element, padding, indent);
         } else if (isGroup(element)) {
           return this.generateGroupControl(element, padding, indent);
         }
@@ -62,10 +62,10 @@ export class CodeGeneratorService {
       .join('\n');
   }
 
-  private generateFieldControl(field: Field, padding: string): string {
+  private generateFieldControl(field: Field, padding: string, indent: number): string {
     const value = this.stringifyValue(field.value);
     const fieldValidators = [...field.validators];
-    const validators = this.generateValidators(fieldValidators || []);
+    const validators = this.generateValidators(fieldValidators || [], indent);
     return `${padding}${field.id}: [${value}, ${validators}],`;
   }
 
@@ -75,14 +75,17 @@ export class CodeGeneratorService {
     return `${padding}${group.id}: this.fb.group({\n${groupControls}\n${padding}}),`;
   }
 
-  private generateValidators(validators: ValidatorDefinition[]): string {
+  private generateValidators(validators: ValidatorDefinition[], indent: number): string {
     if (!validators.length) return '[]';
 
     const validatorFns = validators
       .map((validator) => this.validatorMap.get(validator.type)?.(validator.value))
       .filter(Boolean);
 
-    return validatorFns.length ? `[${validatorFns.join(', ')}]` : '[]';
+    const padding = this.createPadding(indent);
+    const innerPadding = this.createPadding(indent + 2);
+
+    return validatorFns.length ? `[\n${innerPadding}${validatorFns.join(`, \n${innerPadding}`)}\n${padding}]` : '[]';
   }
 
   private stringifyValue(value: unknown): string {

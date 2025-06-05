@@ -156,10 +156,8 @@ export class FormDefinition {
   }
 
   private static _parseElement(raw: any): FormElement {
-    console.log(raw);
     if (raw.type === InputType.GROUP) {
       const parsedChildren = (raw.children ?? []).map(FormDefinition._parseElement);
-      console.log(parsedChildren);
       const group = new Group({ label: raw.label, children: parsedChildren });
       group.id = raw.id;
       return group;
@@ -167,7 +165,6 @@ export class FormDefinition {
 
     const field = new Field(raw.type);
     Object.assign(field, raw);
-    console.log(field);
     return field;
   }
 }

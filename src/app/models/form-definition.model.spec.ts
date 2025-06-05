@@ -1,135 +1,248 @@
-import { FormDefinition } from './form-definition.model';
+import { FormDefinition, FormElement } from './form-definition.model';
 import { Field } from './field.model';
 import { Group } from './group.model';
 import { InputType } from './input-type.model';
 
 describe('FormDefinition', () => {
   let formDef: FormDefinition;
+  let mockField: Field;
+  let mockGroup: Group;
 
   beforeEach(() => {
+    mockField = new Field({ id: 'field-1', label: 'Test Field', type: InputType.TEXT });
+
+    mockGroup = new Group({ label: 'Test Group', children: [] });
+    mockGroup.id = 'group-1';
+
     formDef = new FormDefinition();
   });
 
-  it('should initialise with no children', () => {
-    expect(formDef.children.length).toBe(0);
+  describe('Constructor', () => {
+    it('should create empty form definition by default', () => {
+      expect(formDef.children).toEqual([]);
+    });
+
+    it('should initialize with provided fields', () => {
+      const fields = [mockField, mockGroup];
+      const form = new FormDefinition(fields);
+
+      expect(form.children).toEqual(fields);
+    });
   });
 
-  it('should add a child', () => {
-    const field = new Field(InputType.TEXT);
-    formDef.addChild(field);
-    expect(formDef.children.length).toBe(1);
-    expect(formDef.children[0]).toBe(field);
+  describe('Child Management', () => {
+    it('should add child element', () => {
+      formDef.addChild(mockField);
+
+      expect(formDef.children).toContain(mockField);
+      expect(formDef.children.length).toBe(1);
+    });
+
+    it('should get child at specific index', () => {
+      formDef.addChild(mockField);
+      formDef.addChild(mockGroup);
+
+      expect(formDef.getChildAt(0)).toBe(mockField);
+      expect(formDef.getChildAt(1)).toBe(mockGroup);
+      expect(formDef.getChildAt(2)).toBeUndefined();
+    });
+
+    it('should replace existing child', () => {
+      const newField = new Field({ id: 'field-1', label: 'Test Field', type: InputType.EMAIL });
+
+      formDef.addChild(mockField);
+      const result = formDef.replaceChild(mockField, newField);
+
+      expect(result).toBe(true);
+      expect(formDef.children[0]).toBe(newField);
+    });
+
+    it('should return false when replacing non-existent child', () => {
+      const newField = new Field({ id: 'non-existent', label: 'Test Field', type: InputType.EMAIL });
+
+      const result = formDef.replaceChild(mockField, newField);
+
+      expect(result).toBe(false);
+    });
+
+    it('should remove child by id', () => {
+      formDef.addChild(mockField);
+      formDef.addChild(mockGroup);
+
+      const result = formDef.removeChildById('field-1');
+
+      expect(result).toBe(true);
+      expect(formDef.children).not.toContain(mockField);
+      expect(formDef.children.length).toBe(1);
+    });
+
+    it('should return false when removing non-existent child', () => {
+      const result = formDef.removeChildById('non-existent');
+
+      expect(result).toBe(false);
+    });
   });
 
-  it('should remove a child by ID', () => {
-    const field = new Field(InputType.TEXT);
-    formDef.addChild(field);
-    formDef.removeChildById(field.id);
-    expect(formDef.children.length).toBe(0);
+  describe('Element Finding and Updating', () => {
+    it('should find child by id at root level', () => {
+      formDef.addChild(mockField);
+
+      const found = formDef.findChildById('field-1');
+
+      expect(found).toBe(mockField);
+    });
+
+    it('should find child by id in nested groups', () => {
+      const nestedField = new Field({ id: 'nested-field', label: 'Test Field', type: InputType.NUMBER });
+
+      mockGroup.addChild(nestedField);
+      formDef.addChild(mockGroup);
+
+      const found = formDef.findChildById('nested-field');
+
+      expect(found).toBe(nestedField);
+    });
+
+    it('should return undefined for non-existent id', () => {
+      const found = formDef.findChildById('non-existent');
+
+      expect(found).toBeUndefined();
+    });
+
+    it('should update existing field', () => {
+      formDef.addChild(mockField);
+
+      const updatedField = new Field({ id: 'field-1', label: 'Updated Label', type: InputType.TEXT });
+
+      const result = formDef.updateElement(updatedField);
+
+      expect(result).toBe(true);
+      expect(mockField.label).toBe('Updated Label');
+    });
+
+    it('should update existing group', () => {
+      formDef.addChild(mockGroup);
+
+      const updatedGroup = new Group({ label: 'Updated Group', children: [] });
+      updatedGroup.id = 'group-1';
+
+      const result = formDef.updateElement(updatedGroup);
+
+      expect(result).toBe(true);
+      expect(mockGroup.label).toBe('Updated Group');
+    });
   });
 
-  it('should replace a child', () => {
-    const field1 = new Field(InputType.TEXT);
-    const field2 = new Field(InputType.NUMBER);
-    formDef.addChild(field1);
-    const replaced = formDef.replaceChild(field1, field2);
-    expect(replaced).toBeTrue();
-    expect(formDef.children[1]).toBe(field2);
+  describe('Move Operations', () => {
+    beforeEach(() => {
+      const field2 = new Field({ id: 'field-2', label: 'Test Field', type: InputType.EMAIL });
+
+      formDef.addChild(mockField);
+      formDef.addChild(mockGroup);
+      formDef.addChild(field2);
+    });
+
+    it('should move child from lower to higher index', () => {
+      const result = formDef.moveChild(0, 2);
+
+      expect(result).toBe(true);
+      expect(formDef.getChildAt(0)).toBe(mockGroup);
+      expect(formDef.getChildAt(1)).toBe(mockField);
+    });
+
+    it('should move child from higher to lower index', () => {
+      const result = formDef.moveChild(2, 0);
+
+      expect(result).toBe(true);
+      expect(formDef.getChildAt(0)?.id).toBe('field-2');
+      expect(formDef.getChildAt(1)).toBe(mockField);
+    });
+
+    it('should return false for invalid move operations', () => {
+      expect(formDef.moveChild(0, 0)).toBe(false); // same index
+      expect(formDef.moveChild(-1, 1)).toBe(false); // negative from
+      expect(formDef.moveChild(1, -1)).toBe(false); // negative to
+      expect(formDef.moveChild(5, 1)).toBe(false); // from index out of bounds
+      expect(formDef.moveChild(1, 5)).toBe(false); // to index out of bounds
+    });
   });
 
-  it('should not replace if child not found', () => {
-    const field1 = new Field(InputType.TEXT);
-    const field2 = new Field(InputType.NUMBER);
-    const replaced = formDef.replaceChild(field1, field2);
-    expect(replaced).toBeFalse();
+  describe('Field Collection', () => {
+    it('should get all fields including nested ones', () => {
+      const nestedField = new Field({ id: 'nested-filed', type: InputType.NUMBER });
+
+      mockGroup.addChild(nestedField);
+      formDef.addChild(mockField);
+      formDef.addChild(mockGroup);
+
+      const fields = formDef.getAllFields();
+
+      expect(fields).toContain(mockField);
+      expect(fields).toContain(nestedField);
+      expect(fields.length).toBe(2);
+    });
+
+    it('should get correct field count', () => {
+      const nestedField = new Field({ type: InputType.NUMBER });
+      mockGroup.addChild(nestedField);
+      formDef.addChild(mockField);
+      formDef.addChild(mockGroup);
+
+      expect(formDef.getFieldCount()).toBe(2);
+    });
   });
 
-  it('should update a top-level field', () => {
-    const field = new Field(InputType.TEXT);
-    field.label = 'Original';
-    formDef.addChild(field);
+  describe('JSON Serialization', () => {
+    it('should serialize to JSON', () => {
+      formDef.addChild(mockField);
 
-    const updated = new Field(InputType.TEXT);
-    updated.id = field.id;
-    updated.label = 'Updated';
+      const json = formDef.toJSON();
+      const parsed = JSON.parse(json);
 
-    const result = formDef.updateField(updated);
-    expect(result).toBeTrue();
-    expect(formDef.children[0]['label']).toBe('Updated');
-  });
+      expect(parsed.fields).toBeDefined();
+      expect(parsed.fields.length).toBe(1);
+      expect(parsed.fields[0].id).toBe('field-1');
+    });
 
-  it('should update a nested field in a group', () => {
-    const field = new Field(InputType.TEXT);
-    const group = new Group('Group 1', [field]);
-    formDef.addChild(group);
+    it('should deserialize from JSON with fields property', () => {
+      const json = JSON.stringify({
+        fields: [{ id: 'field-1', type: InputType.TEXT, label: 'Test Field' }],
+      });
 
-    const updated = new Field(InputType.TEXT);
-    updated.id = field.id;
-    updated.label = 'Updated';
+      const form = FormDefinition.fromJSON(json);
 
-    const result = formDef.updateField(updated);
-    expect(result).toBeTrue();
-    expect((formDef.children[0] as Group).children[0]['label']).toBe('Updated');
-  });
+      expect(form.children.length).toBe(1);
+      expect(form.children[0].id).toBe('field-1');
+    });
 
-  it('should find a field by ID', () => {
-    const field = new Field(InputType.TEXT);
-    formDef.addChild(field);
-    const found = formDef.findChildById(field.id);
-    expect(found).toBe(field);
-  });
+    it('should deserialize from JSON with children property', () => {
+      const json = JSON.stringify({
+        children: [{ id: 'field-1', type: InputType.TEXT, label: 'Test Field' }],
+      });
 
-  it('should find a nested field by ID', () => {
-    const field = new Field(InputType.TEXT);
-    const group = new Group('Nested Group', [field]);
-    formDef.addChild(group);
+      const form = FormDefinition.fromJSON(json);
 
-    const found = formDef.findChildById(field.id);
-    expect(found).toBe(field);
-  });
+      expect(form.children.length).toBe(1);
+      expect(form.children[0].id).toBe('field-1');
+    });
 
-  it('should move a child correctly', () => {
-    const field1 = new Field(InputType.TEXT);
-    const field2 = new Field(InputType.NUMBER);
-    const field3 = new Field(InputType.CHECKBOX);
+    it('should handle groups in JSON', () => {
+      const json = JSON.stringify({
+        fields: [
+          {
+            id: 'group-1',
+            type: InputType.GROUP,
+            label: 'Test Group',
+            children: [{ id: 'field-1', type: InputType.TEXT, label: 'Nested Field' }],
+          },
+        ],
+      });
 
-    formDef = new FormDefinition([field1, field2, field3]);
-    const moved = formDef.moveChild(0, 2);
-    expect(moved).toBeTrue();
-    expect(formDef.children[1]).toBe(field1);
-  });
+      const form = FormDefinition.fromJSON(json);
 
-  it('should not move if indices are invalid', () => {
-    const field1 = new Field(InputType.TEXT);
-    formDef.addChild(field1);
-    expect(formDef.moveChild(-1, 0)).toBeFalse();
-    expect(formDef.moveChild(0, -1)).toBeFalse();
-  });
-
-  it('should serialise and deserialise correctly', () => {
-    const field = new Field(InputType.TEXT);
-    field.label = 'Name';
-    const group = new Group('Info', [field]);
-
-    formDef = new FormDefinition([group]);
-
-    const json = formDef.toJSON();
-    const restored = FormDefinition.fromJSON(json);
-
-    expect(restored.children.length).toBe(1);
-    const restoredGroup = restored.children[0] as Group;
-    expect(restoredGroup.label).toBe('Info');
-    expect(restoredGroup.children.length).toBe(1);
-    expect(restoredGroup.children[0] instanceof Field).toBeTrue();
-    expect(restoredGroup.children[0].label).toBe('Name');
-  });
-
-  it('should return the child at a given valid index', () => {
-    const field1 = new Field(InputType.TEXT);
-    const field2 = new Field(InputType.NUMBER);
-    formDef = new FormDefinition([field1, field2]);
-
-    expect(formDef.getChildAt(0)).toBe(field1);
-    expect(formDef.getChildAt(1)).toBe(field2);
+      expect(form.children.length).toBe(1);
+      expect(form.children[0]).toBeInstanceOf(Group);
+      expect(form.getAllFields().length).toBe(1);
+    });
   });
 });

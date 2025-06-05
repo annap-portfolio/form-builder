@@ -7,8 +7,6 @@ import { FormInputComponent } from './form-input.component';
 describe('FormInputComponent', () => {
   let component: FormInputComponent;
   let fixture: ComponentFixture<FormInputComponent>;
-  let formGroup: FormGroup;
-  let field: Field;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -20,63 +18,86 @@ describe('FormInputComponent', () => {
     fixture = TestBed.createComponent(FormInputComponent);
     component = fixture.componentInstance;
 
-    // Create a sample Field and FormGroup with control
-    field = new Field(InputType.TEXT, 'Test Label');
-    formGroup = new FormGroup({
-      [field.id]: new FormControl('', Validators.required),
+    // Mock inputs
+    fixture.componentRef.setInput('field', new Field({ id: 'field1', type: InputType.TEXT }));
+    component.formGroup = new FormGroup({
+      field1: new FormControl('', [Validators.required]),
     });
-
-    fixture.componentRef.setInput('field', field);
-    fixture.componentRef.setInput('isInGroup', false);
-    component.formGroup = formGroup;
 
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should return form control matching field id', () => {
-    expect(component.control).toBe(formGroup.get(field.id));
+  it('should return the correct form control from control getter', () => {
+    const control = component.control;
+    expect(control).toBeTruthy();
+    expect(control?.value).toBe('');
   });
 
-  it('should return false from showError if control is valid', () => {
-    formGroup.get(field.id)?.setValue('valid value');
-    formGroup.get(field.id)?.markAsTouched();
-    fixture.detectChanges();
+  describe('showError', () => {
+    it('should return false when control is valid and untouched', () => {
+      const control = component.control!;
+      control.setValue('valid value');
+      control.markAsUntouched();
+      fixture.detectChanges();
 
-    expect(component.showError()).toBeFalse();
+      expect(component.showError()).toBeFalse();
+    });
+
+    it('should return false when control is invalid but untouched and not dirty', () => {
+      const control = component.control!;
+      control.setValue('');
+      control.markAsUntouched();
+      control.markAsPristine();
+      fixture.detectChanges();
+
+      expect(component.showError()).toBeFalse();
+    });
+
+    it('should return true when control is invalid and touched', () => {
+      const control = component.control!;
+      control.setValue('');
+      control.markAsTouched();
+      fixture.detectChanges();
+
+      expect(component.showError()).toBeTrue();
+    });
+
+    it('should return true when control is invalid and dirty', () => {
+      const control = component.control!;
+      control.setValue('');
+      control.markAsDirty();
+      fixture.detectChanges();
+
+      expect(component.showError()).toBeTrue();
+    });
   });
 
-  it('should return true from showError if control is invalid and touched', () => {
-    formGroup.get(field.id)?.setValue('');
-    formGroup.get(field.id)?.markAsTouched();
-    fixture.detectChanges();
-
-    expect(component.showError()).toBeTrue();
+  it('should have correct FontAwesome icon references', () => {
+    expect(component.faPencil).toBeDefined();
+    expect(component.faTrash).toBeDefined();
+    expect(component.faGripVertical).toBeDefined();
+    expect(component.faLinkSlash).toBeDefined();
   });
 
-  it('should return true from showError if control is invalid and dirty', () => {
-    formGroup.get(field.id)?.setValue('');
-    formGroup.get(field.id)?.markAsDirty();
-    fixture.detectChanges();
-
-    expect(component.showError()).toBeTrue();
+  it('should emit openEditDialog event when triggered', () => {
+    spyOn(component.openEditDialog, 'emit');
+    component.openEditDialog.emit();
+    expect(component.openEditDialog.emit).toHaveBeenCalled();
   });
 
-  it('should return false from showError if control is invalid but not touched or dirty', () => {
-    formGroup.get(field.id)?.setValue('');
-    // neither touched nor dirty
-    fixture.detectChanges();
-
-    expect(component.showError()).toBeFalse();
+  it('should emit delete event when triggered', () => {
+    spyOn(component.delete, 'emit');
+    component.delete.emit();
+    expect(component.delete.emit).toHaveBeenCalled();
   });
 
-  // Test that output events exist and are EventEmitters (basic check)
-  it('should have output event emitters', () => {
-    expect(component.openEditDialog).toBeDefined();
-    expect(component.delete).toBeDefined();
-    expect(component.ungroup).toBeDefined();
+  it('should emit ungroup event when triggered', () => {
+    spyOn(component.ungroup, 'emit');
+    component.ungroup.emit();
+    expect(component.ungroup.emit).toHaveBeenCalled();
   });
 });

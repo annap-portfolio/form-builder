@@ -16,7 +16,6 @@ import { InputTextModule } from 'primeng/inputtext';
 interface ValidatorOption {
   name: ValidatorType;
   label: string;
-  icon: string;
   checked: boolean;
   value?: number;
   hasValueInput: boolean;
@@ -51,9 +50,8 @@ export class FieldEditDialogComponent implements OnInit {
   // Validator configuration
   readonly validatorOptions: ValidatorOption[] = [
     {
-      name: 'required',
+      name: ValidatorType.REQUIRED,
       label: 'Required',
-      icon: 'fas fa-exclamation-triangle',
       checked: false,
       hasValueInput: false,
       applicableTypes: [
@@ -68,36 +66,32 @@ export class FieldEditDialogComponent implements OnInit {
       ],
     },
     {
-      name: 'minLength',
+      name: ValidatorType.MIN_LENGTH,
       label: 'Minimum length',
-      icon: 'fas fa-arrow-up',
       checked: false,
       value: 1,
       hasValueInput: true,
       applicableTypes: [InputType.TEXT, InputType.TEXTAREA, InputType.EMAIL, InputType.PASSWORD],
     },
     {
-      name: 'maxLength',
+      name: ValidatorType.MAX_LENGTH,
       label: 'Maximum length',
-      icon: 'fas fa-arrow-down',
       checked: false,
       value: 100,
       hasValueInput: true,
       applicableTypes: [InputType.TEXT, InputType.TEXTAREA, InputType.EMAIL, InputType.PASSWORD],
     },
     {
-      name: 'min',
+      name: ValidatorType.MIN,
       label: 'Minimum value',
-      icon: 'fas fa-greater-than-equal',
       checked: false,
       value: 0,
       hasValueInput: true,
       applicableTypes: [InputType.NUMBER, InputType.DATE],
     },
     {
-      name: 'max',
+      name: ValidatorType.MAX,
       label: 'Maximum value',
-      icon: 'fas fa-less-than-equal',
       checked: false,
       value: 100,
       hasValueInput: true,
@@ -122,16 +116,6 @@ export class FieldEditDialogComponent implements OnInit {
 
     const elementType = this.element().type;
     return this.validatorOptions.filter((validator) => validator.applicableTypes.includes(elementType));
-  }
-
-  /**
-   * Determines if min/max length validators should be visible
-   * @deprecated Use getApplicableValidators() instead
-   */
-  shouldShowLengthValidators(): boolean {
-    const textInputTypes = [InputType.TEXT, InputType.TEXTAREA, InputType.EMAIL, InputType.PASSWORD];
-
-    return this.isField(this.element()) && textInputTypes.includes(this.element().type);
   }
 
   /**
@@ -240,8 +224,8 @@ export class FieldEditDialogComponent implements OnInit {
   }
 
   private enforceMinMaxLengthConstraints(): void {
-    const minValidator = this.findValidatorOption('minLength');
-    const maxValidator = this.findValidatorOption('maxLength');
+    const minValidator = this.findValidatorOption(ValidatorType.MIN_LENGTH);
+    const maxValidator = this.findValidatorOption(ValidatorType.MAX_LENGTH);
 
     if (!minValidator?.checked || !maxValidator?.checked) return;
 
@@ -255,8 +239,8 @@ export class FieldEditDialogComponent implements OnInit {
   }
 
   private enforceMinMaxValueConstraints(): void {
-    const minValidator = this.findValidatorOption('min');
-    const maxValidator = this.findValidatorOption('max');
+    const minValidator = this.findValidatorOption(ValidatorType.MIN);
+    const maxValidator = this.findValidatorOption(ValidatorType.MAX);
 
     if (!minValidator?.checked || !maxValidator?.checked) return;
 

@@ -14,10 +14,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'form-builder' title`, () => {
+  it(`should have the 'Form Builder' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('form-builder');
+    expect(app.title).toEqual('Form Builder');
   });
 
   it('should render title', () => {

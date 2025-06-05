@@ -8,12 +8,13 @@ describe('GeneratedCodeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GeneratedCodeComponent]
-    })
-    .compileComponents();
+      imports: [GeneratedCodeComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GeneratedCodeComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('typescriptCode', 'script');
+    fixture.componentRef.setInput('htmlCode', 'html');
     fixture.detectChanges();
   });
 
