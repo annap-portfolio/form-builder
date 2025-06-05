@@ -12,6 +12,14 @@
       gap: 16px;
     }
   }
+
+  .validators__button {
+    width: 100%;
+  }
+
+  .validators__item__value {
+    width: 100px;
+  }
 }
 
 .field {
@@ -28,4 +36,25 @@
 .save-button {
   display: flex;
   justify-content: end;
+}
+
+.validators {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 35px;
+
+    &__value {
+      width: 100px;
+    }
+  }
+
+  p-button {
+    flex-grow: 1;
+  }
 }

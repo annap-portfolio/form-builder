@@ -1,107 +1,162 @@
 import { Injectable } from '@angular/core';
-import { FormDefinition } from '@models/form-definition.model';
 import { Field } from '@models/field.model';
+import { FormDefinition, FormElement } from '@models/form-definition.model';
 import { Group } from '@models/group.model';
-import { FormElement, ValidatorConfig } from '@models/form-definition.model';
 import { InputType } from '@models/input-type.model';
+import { ValidatorDefinition } from '@models/validator-definition.model';
+import { isField, isGroup } from '@utils/form-element';
+
+interface TemplateGenerator {
+  generate(field: Field, padding: string): string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CodeGeneratorService {
-  generateTypescriptCode(formDefinition: FormDefinition): string {
-    const children = [...formDefinition.children];
-    const formControls = this.generateControls(children);
+  private readonly validatorMap = new Map<string, (value?: any) => string>([
+    ['required', () => 'Validators.required'],
+    ['minLength', (value) => `Validators.minLength(${value})`],
+    ['maxLength', (value) => `Validators.maxLength(${value})`],
+    ['min', (value) => `Validators.min(${value})`],
+    ['max', (value) => `Validators.max(${value})`],
+  ]);
 
+  private readonly templateGenerators = new Map<InputType, TemplateGenerator>([
+    [InputType.TEXT, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'text') }],
+    [InputType.EMAIL, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'email') }],
+    [InputType.PASSWORD, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'password') }],
+    [InputType.DATE, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'date') }],
+    [InputType.NUMBER, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'number') }],
+    [InputType.TEXTAREA, { generate: (field, pad) => this.generateTextareaTemplate(field, pad) }],
+    [InputType.CHECKBOX, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'checkbox') }],
+    [InputType.RADIO, { generate: (field, pad) => `${pad}<!-- radio options here -->` }],
+  ]);
+
+  /**
+   * Generates TypeScript FormBuilder code from form definition
+   */
+  generateTypescriptCode(formDefinition: FormDefinition): string {
+    const formControls = this.generateControls([...formDefinition.children]);
     return `this.form = this.fb.group({\n${formControls}\n});`;
   }
 
+  /**
+   * Generates HTML template code from form definition
+   */
+  generateHTMLTemplate(formDefinition: FormDefinition): string {
+    return this.generateTemplateControls([...formDefinition.children]);
+  }
+
   private generateControls(elements: FormElement[], indent = 2): string {
-    const pad = ' '.repeat(indent);
+    const padding = this.createPadding(indent);
+
     return elements
-      .map((el) => {
-        if (el instanceof Field) {
-          const validators = this.generateValidators(el.validators);
-          return `${pad}${el.id}: [${this.stringifyValue(el.value)}, ${validators}],`;
-        } else if (el instanceof Group) {
-          const groupControls = this.generateControls(el.children, indent + 2);
-          return `${pad}${el.id}: this.fb.group({\n${groupControls}\n${pad}}),`;
+      .map((element) => {
+        if (isField(element)) {
+          return this.generateFieldControl(element, padding);
+        } else if (isGroup(element)) {
+          return this.generateGroupControl(element, padding, indent);
         }
         return '';
       })
+      .filter(Boolean)
       .join('\n');
   }
 
-  private generateValidators(validators: ValidatorConfig[]): string {
+  private generateFieldControl(field: Field, padding: string): string {
+    const value = this.stringifyValue(field.value);
+    const fieldValidators = [...field.validators];
+    const validators = this.generateValidators(fieldValidators || []);
+    return `${padding}${field.id}: [${value}, ${validators}],`;
+  }
+
+  private generateGroupControl(group: Group, padding: string, indent: number): string {
+    const groupChildren = [...group.children];
+    const groupControls = this.generateControls(groupChildren, indent + 2);
+    return `${padding}${group.id}: this.fb.group({\n${groupControls}\n${padding}}),`;
+  }
+
+  private generateValidators(validators: ValidatorDefinition[]): string {
     if (!validators.length) return '[]';
 
     const validatorFns = validators
-      .map((v) => {
-        switch (v.type) {
-          case 'required':
-            return 'Validators.required';
-          case 'minLength':
-            return `Validators.minLength(${v.value})`;
-          case 'maxLength':
-            return `Validators.maxLength(${v.value})`;
-          case 'pattern':
-            return `Validators.pattern(${JSON.stringify(v.value)})`;
-          default:
-            return '';
-        }
-      })
+      .map((validator) => this.validatorMap.get(validator.type)?.(validator.value))
       .filter(Boolean);
 
-    return `[${validatorFns.join(', ')}]`;
+    return validatorFns.length ? `[${validatorFns.join(', ')}]` : '[]';
   }
 
-  private stringifyValue(value: any): string {
-    if (typeof value === 'string') return `'${value}'`;
-    if (typeof value === 'boolean' || typeof value === 'number') return `${value}`;
+  private stringifyValue(value: unknown): string {
+    if (value === null || value === undefined) return 'null';
+    if (typeof value === 'string') return `'${this.escapeString(value)}'`;
+    if (typeof value === 'boolean' || typeof value === 'number') return String(value);
     if (Array.isArray(value)) return JSON.stringify(value);
+    if (typeof value === 'object') return JSON.stringify(value);
     return 'null';
   }
 
-  generateHTMLTemplate(formDefinition: FormDefinition): string {
-    const children = [...formDefinition.children];
-    return this.generateTemplateControls(children);
+  private escapeString(str: string): string {
+    return str.replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
   }
 
   private generateTemplateControls(elements: FormElement[], indent = 2): string {
-    const pad = ' '.repeat(indent);
+    const padding = this.createPadding(indent);
 
     return elements
-      .map((el) => {
-        if (el instanceof Field) {
-          return this.generateFieldTemplate(el, pad);
-        } else if (el instanceof Group) {
-          const childrenHtml = this.generateTemplateControls(el.children, indent + 2);
-          return `${pad}<div formGroupName="${el.id}">\n${childrenHtml}\n${pad}</div>`;
+      .map((element) => {
+        if (isField(element)) {
+          return this.generateFieldTemplate(element, padding);
+        } else if (isGroup(element)) {
+          return this.generateGroupTemplate(element, padding, indent);
         }
         return '';
       })
+      .filter(Boolean)
       .join('\n');
   }
 
-  private generateFieldTemplate(field: Field, pad: string): string {
-    const label = `${pad}<label for="${field.id}">\n${pad}${pad}${field.label}\n${pad}</label>`;
-    const control = (() => {
-      switch (field.type) {
-        case InputType.TEXT:
-        case InputType.EMAIL:
-        case InputType.PASSWORD:
-        case InputType.DATE:
-        case InputType.NUMBER:
-          return `${pad}<input\n${pad}${pad}id="${field.id}"\n${pad}${pad}formControlName="${field.id}"\n${pad}${pad}type="${field.type}" />`;
-        case InputType.TEXTAREA:
-          return `${pad}<textarea\n${pad}${pad}id="${field.id}"\n${pad}${pad}formControlName="${field.id}">\n${pad}</textarea>`;
-        case InputType.CHECKBOX:
-          return `${pad}<input\n${pad}${pad}id="${field.id}"\n${pad}${pad}formControlName="${field.id}"\n${pad}${pad}type="checkbox" />`;
-        case InputType.RADIO:
-          return `${pad}<!-- radio options here -->`;
-        default:
-          return `${pad}<!-- unknown input type -->`;
-      }
-    })();
-
+  private generateFieldTemplate(field: Field, padding: string): string {
+    const label = this.generateLabelTemplate(field, padding);
+    const control = this.generateControlTemplate(field, padding);
     return `${label}\n${control}`;
+  }
+
+  private generateGroupTemplate(group: Group, padding: string, indent: number): string {
+    const groupChildren = [...group.children];
+    const childrenHtml = this.generateTemplateControls(groupChildren, indent + 2);
+    return `${padding}<div formGroupName="${group.id}">\n${childrenHtml}\n${padding}</div>`;
+  }
+
+  private generateLabelTemplate(field: Field, padding: string): string {
+    const innerPadding = this.createPadding(padding.length + 2);
+    return `${padding}<label for="${field.id}">\n${innerPadding}${field.label}\n${padding}</label>`;
+  }
+
+  private generateControlTemplate(field: Field, padding: string): string {
+    const generator = this.templateGenerators.get(field.type);
+    return generator?.generate(field, padding) || `${padding}<!-- unknown input type: ${field.type} -->`;
+  }
+
+  private generateInputTemplate(field: Field, padding: string, type: string): string {
+    const innerPadding = this.createPadding(padding.length + 2);
+    return [
+      `${padding}<input`,
+      `${innerPadding}id="${field.id}"`,
+      `${innerPadding}formControlName="${field.id}"`,
+      `${innerPadding}type="${type}" />`,
+    ].join('\n');
+  }
+
+  private generateTextareaTemplate(field: Field, padding: string): string {
+    const innerPadding = this.createPadding(padding.length + 2);
+    return [
+      `${padding}<textarea`,
+      `${innerPadding}id="${field.id}"`,
+      `${innerPadding}formControlName="${field.id}">`,
+      `${padding}</textarea>`,
+    ].join('\n');
+  }
+
+  private createPadding(indent: number): string {
+    return ' '.repeat(indent);
   }
 }

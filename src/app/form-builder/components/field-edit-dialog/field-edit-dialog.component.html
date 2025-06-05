@@ -14,5 +14,43 @@
     <input type="text" pInputText [(ngModel)]="label" />
   </div>
 
-  <p-button Class="save-button" (click)="onSave()">Save</p-button>
+  @if (getApplicableValidators().length > 0) {
+    <div class="field">
+      <label class="field__label">Validators</label>
+
+      <div class="validators">
+        @for (validator of getApplicableValidators(); track validator.name) {
+          <div class="validators__item">
+            <p-checkbox
+              [inputId]="validator.name"
+              [(ngModel)]="validator.checked"
+              [binary]="true"
+              (onChange)="onValidatorToggle(validator)"
+            ></p-checkbox>
+
+            <label [for]="validator.name" class="validators__label">
+              <i [class]="validator.icon" class="validators__icon"></i>
+              {{ validator.label }}
+            </label>
+
+            @if (validator.checked && validator.hasValueInput) {
+              <p-inputNumber
+                [(ngModel)]="validator.value"
+                [min]="0"
+                [max]="9999"
+                [showButtons]="true"
+                [buttonLayout]="'horizontal'"
+                [step]="1"
+                size="small"
+                styleClass="validators__input"
+                (onInput)="onValidatorValueChange(validator)"
+              ></p-inputNumber>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <p-button class="save-button" (click)="onSave()">Save</p-button>
 </p-dialog>

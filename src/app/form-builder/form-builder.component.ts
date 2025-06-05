@@ -74,7 +74,7 @@ export class FormBuilderComponent implements OnInit {
   }
 
   onInputSelected(type: InputType) {
-    const newField = new Field(type);
+    const newField = new Field({ type });
 
     this.formDefinition.addChild(newField);
     this.form = this.formBuilderService.buildForm(this.formDefinition);

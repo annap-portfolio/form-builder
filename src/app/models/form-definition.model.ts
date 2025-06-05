@@ -2,16 +2,10 @@ import { Field } from './field.model';
 import { Group } from './group.model';
 import { InputType } from './input-type.model';
 
-export interface ValidatorConfig {
-  type: 'required' | 'minLength' | 'maxLength' | 'pattern';
-  value?: any;
-  message?: string;
-}
-
 export type FormElement = Field | Group;
 
 export class FormDefinition {
-  private _children: FormElement[] = [];
+  private readonly _children: FormElement[] = [];
 
   constructor(fields?: FormElement[]) {
     this._children = fields ?? [];
@@ -22,78 +16,39 @@ export class FormDefinition {
   }
 
   getChildAt(index: number): FormElement | undefined {
-    return this.children[index];
+    return this._children[index];
   }
 
-  addChild(element: FormElement) {
+  addChild(element: FormElement): void {
     this._children.push(element);
   }
 
   replaceChild(oldElement: FormElement, newElement: FormElement): boolean {
-    const index = this.children.findIndex((el) => el.id === oldElement.id);
+    const index = this._findElementIndex(oldElement.id);
     if (index === -1) return false;
 
-    this._children.splice(index + 1, 0, newElement);
+    this._children[index] = newElement;
     return true;
   }
 
-  removeChildById(id: string): void {
-    this._children = this.children.filter((f) => f.id !== id);
+  removeChildById(id: string): boolean {
+    const index = this._findElementIndex(id);
+    if (index === -1) return false;
+
+    this._children.splice(index, 1);
+    return true;
   }
 
   updateElement(updated: FormElement): boolean {
-    for (let i = 0; i < this.children.length; i++) {
-      const element = this.children[i];
-
-      // Direct match at root level
-      if (element.id === updated.id) {
-        if (element instanceof Field && updated instanceof Field) {
-          Object.assign(element, updated);
-          return true;
-        }
-
-        if (element instanceof Group && updated instanceof Group) {
-          element.label = updated.label; // Only allow label updates for groups
-          return true;
-        }
-      }
-
-      // Recurse into nested groups
-      if (element instanceof Group && updated instanceof Field) {
-        if (element.updateChild(updated)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return this._updateElementRecursive(this._children, updated);
   }
 
   findChildById(id: string): FormElement | undefined {
-    for (const element of this.children) {
-      if (element.id === id) {
-        return element;
-      }
-
-      if (element instanceof Group) {
-        const found = element.findChildById(id);
-        if (found) {
-          return found;
-        }
-      }
-    }
-
-    return undefined;
+    return this._findElementRecursive(this._children, id);
   }
 
   moveChild(fromIndex: number, toIndex: number): boolean {
-    if (
-      fromIndex === toIndex ||
-      fromIndex < 0 ||
-      toIndex < 0 ||
-      fromIndex >= this.children.length ||
-      toIndex > this.children.length
-    ) {
+    if (!this._isValidMoveOperation(fromIndex, toIndex)) {
       return false;
     }
 
@@ -104,27 +59,115 @@ export class FormDefinition {
     return true;
   }
 
-  static fromJSON(json: string): FormDefinition {
-    const parsed = JSON.parse(json);
+  getAllFields(): Field[] {
+    return this._collectFields(this._children);
+  }
 
-    const parseElement = (raw: any): FormElement => {
-      if (raw.type === InputType.GROUP) {
-        const parsedChildren = (raw.children ?? []).map(parseElement);
-        const group = new Group(raw.label, parsedChildren);
-        group.id = raw.id; // apply additional props as needed
-        return group;
-      } else {
-        const field = new Field(raw.type);
-        Object.assign(field, raw); // safe for Field since it has no nested structure
-        return field;
-      }
-    };
-
-    const children = (parsed.fields ?? parsed.children ?? []).map(parseElement);
-    return new FormDefinition(children);
+  getFieldCount(): number {
+    return this.getAllFields().length;
   }
 
   toJSON(): string {
-    return JSON.stringify({ fields: this.children });
+    return JSON.stringify({ fields: this._children }, null, 2);
+  }
+
+  static fromJSON(json: string): FormDefinition {
+    try {
+      const parsed = JSON.parse(json);
+      const children = (parsed.fields ?? parsed.children ?? []).map(FormDefinition._parseElement);
+      return new FormDefinition(children);
+    } catch (error) {
+      throw new Error(`Failed to parse FormDefinition from JSON: ${error}`);
+    }
+  }
+
+  // Private helper methods
+  private _findElementIndex(id: string): number {
+    return this._children.findIndex((el) => el.id === id);
+  }
+
+  private _updateElementRecursive(elements: FormElement[], updated: FormElement): boolean {
+    for (const element of elements) {
+      if (element.id === updated.id) {
+        return this._updateMatchingElement(element, updated);
+      }
+
+      if (element instanceof Group) {
+        if (this._updateElementRecursive(element.children as FormElement[], updated)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private _updateMatchingElement(existing: FormElement, updated: FormElement): boolean {
+    if (existing instanceof Field && updated instanceof Field) {
+      Object.assign(existing, updated);
+      return true;
+    }
+
+    if (existing instanceof Group && updated instanceof Group) {
+      existing.label = updated.label;
+      return true;
+    }
+
+    return false;
+  }
+
+  private _findElementRecursive(elements: FormElement[], id: string): FormElement | undefined {
+    for (const element of elements) {
+      if (element.id === id) {
+        return element;
+      }
+
+      if (element instanceof Group) {
+        const found = this._findElementRecursive(element.children as FormElement[], id);
+        if (found) return found;
+      }
+    }
+
+    return undefined;
+  }
+
+  private _isValidMoveOperation(fromIndex: number, toIndex: number): boolean {
+    return (
+      fromIndex !== toIndex &&
+      fromIndex >= 0 &&
+      toIndex >= 0 &&
+      fromIndex < this._children.length &&
+      toIndex <= this._children.length
+    );
+  }
+
+  private _collectFields(elements: FormElement[]): Field[] {
+    const fields: Field[] = [];
+
+    for (const element of elements) {
+      if (element instanceof Field) {
+        fields.push(element);
+      } else if (element instanceof Group) {
+        fields.push(...this._collectFields(element.children as FormElement[]));
+      }
+    }
+
+    return fields;
+  }
+
+  private static _parseElement(raw: any): FormElement {
+    console.log(raw);
+    if (raw.type === InputType.GROUP) {
+      const parsedChildren = (raw.children ?? []).map(FormDefinition._parseElement);
+      console.log(parsedChildren);
+      const group = new Group({ label: raw.label, children: parsedChildren });
+      group.id = raw.id;
+      return group;
+    }
+
+    const field = new Field(raw.type);
+    Object.assign(field, raw);
+    console.log(field);
+    return field;
   }
 }

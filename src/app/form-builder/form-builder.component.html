@@ -1,6 +1,6 @@
 <!-- Reusable templates -->
 <h2>Form</h2>
-@if (formDefinition.children.length > 0) {
+@if (formDefinition.children && formDefinition.children.length > 0) {
   <div class="fields" [formGroup]="form">
     @for (element of formDefinition.children; track element.id; let i = $index) {
       <ng-container *ngTemplateOutlet="renderElement; context: { $implicit: element, index: i }"></ng-container>
