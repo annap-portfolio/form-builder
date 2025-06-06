@@ -45,10 +45,10 @@ export class Field {
   get label(): string {
     return this._label;
   }
-  get validators(): readonly ValidatorDefinition[] {
+  get validators(): ValidatorDefinition[] {
     return [...this._validators];
   }
-  get options(): readonly FieldOption[] | undefined {
+  get options(): FieldOption[] | undefined {
     return this._options ? [...this._options] : undefined;
   }
   get value(): any {
@@ -69,6 +69,10 @@ export class Field {
 
   set validators(value: ValidatorDefinition[]) {
     this._validators = value;
+  }
+
+  set options(value: FieldOption[]) {
+    this._options = value;
   }
 
   /**
@@ -249,7 +253,6 @@ export class Field {
   static getDefaultLabel(type: InputType): string {
     const typeLabels: Record<InputType, string> = {
       [InputType.TEXT]: 'Text Field',
-      [InputType.EMAIL]: 'Email Field',
       [InputType.PASSWORD]: 'Password Field',
       [InputType.NUMBER]: 'Number Field',
       [InputType.DATE]: 'Date Field',

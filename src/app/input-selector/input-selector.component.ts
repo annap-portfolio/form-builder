@@ -32,7 +32,6 @@ export class InputSelectorComponent {
     [InputType.TEXT]: faFont,
     [InputType.TEXTAREA]: faCalendar,
     [InputType.NUMBER]: faHashtag,
-    [InputType.EMAIL]: faEnvelope,
     [InputType.PASSWORD]: faKey,
     [InputType.CHECKBOX]: faCheckSquare,
     [InputType.RADIO]: faDotCircle,
@@ -40,7 +39,7 @@ export class InputSelectorComponent {
     [InputType.GROUP]: faCalendar,
   };
 
-  inputTypes = ['text', 'textarea', 'number', 'email', 'password', 'checkbox', 'radio', 'date'] as const;
+  inputTypes = ['text', 'textarea', 'number', 'password', 'checkbox', 'radio', 'date'] as const;
 
   inputConfigs: InputConfig[] = this.inputTypes.map((type) => ({
     name: type.charAt(0).toUpperCase() + type.slice(1),

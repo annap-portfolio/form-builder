@@ -1,17 +1,20 @@
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilderComponent } from './form-builder/form-builder.component';
-import { HeaderComponent } from './header/header.component';
-import { DividerModule } from 'primeng/divider';
-import { GeneratedCodeComponent } from './generated-code/generated-code.component';
 import { CodeGeneratorService } from '@core/services/code-generator.service';
 import { FormDefinition } from '@models/form-definition.model';
-import { TabsModule } from 'primeng/tabs';
-import { InputSelectorComponent } from './input-selector/input-selector.component';
 import { InputType } from '@models/input-type.model';
+import { DividerModule } from 'primeng/divider';
+import { TabsModule } from 'primeng/tabs';
+import { Subject } from 'rxjs';
+import { FormBuilderComponent } from './form-builder/form-builder.component';
+import { GeneratedCodeComponent } from './generated-code/generated-code.component';
+import { HeaderComponent } from './header/header.component';
+import { InputSelectorComponent } from './input-selector/input-selector.component';
 
 @Component({
   selector: 'app-root',
   imports: [
+    CommonModule,
     FormBuilderComponent,
     HeaderComponent,
     DividerModule,
@@ -30,7 +33,7 @@ export class AppComponent {
   typescriptCode = signal<string>('');
   htmlCode = signal<string>('');
 
-  fieldTypeToAdd = signal<InputType | null>(null);
+  fieldTypeSelected = new Subject<InputType>();
 
   screenWidth = signal(window.innerWidth);
   isMobile = computed(() => this.screenWidth() < 992);
@@ -42,7 +45,7 @@ export class AppComponent {
   }
 
   onInputSelected(type: InputType) {
-    this.fieldTypeToAdd.set(type);
+    this.fieldTypeSelected.next(type);
   }
 
   onFormChange(form: FormDefinition) {

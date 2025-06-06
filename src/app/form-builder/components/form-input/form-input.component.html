@@ -3,12 +3,14 @@
 <div class="field" [formGroup]="formGroup">
   <div class="field__header">
     <label [for]="field().id" class="field__header__label">{{ field().label }}</label>
+
     <p-button size="small" variant="text" styleClass="field__header__action" (click)="openEditDialog.emit()">
       <fa-icon [icon]="faPencil" size="sm"></fa-icon>
     </p-button>
     <p-button size="small" variant="text" styleClass="field__header__action" (click)="delete.emit()">
       <fa-icon [icon]="faTrash" size="sm"></fa-icon>
     </p-button>
+
     @if (isInGroup()) {
       <p-button size="small" variant="text" styleClass="field__header__action" (click)="ungroup.emit()">
         <fa-icon [icon]="faLinkSlash" size="sm"></fa-icon>
@@ -16,62 +18,64 @@
     }
   </div>
 
-  <!-- Text-based inputs -->
-  <input
-    *ngIf="field().type === InputType.TEXT || field().type === InputType.EMAIL"
-    pInputText
-    [id]="field().id"
-    [type]="field().type"
-    [formControlName]="field().id"
-    lass="field"
-  />
+  @switch (field().type) {
+    @case (InputType.TEXT) {
+      <input pInputText [id]="field().id" [type]="field().type" [formControlName]="field().id" />
+    }
 
-  <!-- Number input -->
-  <p-inputNumber
-    *ngIf="field().type === InputType.NUMBER"
-    [inputId]="field().id"
-    [formControlName]="field().id"
-    inputStyleClass="w-full"
-    styleClass="field"
-  ></p-inputNumber>
+    @case (InputType.NUMBER) {
+      <p-inputNumber [inputId]="field().id" [formControlName]="field().id" styleClass="input"></p-inputNumber>
+    }
 
-  <!-- Single select dropdown -->
-  <p-select
-    *ngIf="field().type === InputType.RADIO"
-    [inputId]="field().id"
-    [formControlName]="field().id"
-    [options]="field().options ?? []"
-    optionLabel=""
-    class="w-full"
-    styleClass="field"
-  ></p-select>
+    @case (InputType.RADIO) {
+      <div class="field--with-options">
+        @for (option of field().options ?? []; track option.value) {
+          <div class="field__item">
+            <p-radioButton
+              [inputId]="`radio_${field().id}_${option.value}`"
+              [formControlName]="field().id"
+              [value]="option.value"
+            ></p-radioButton>
+            <label [for]="`radio_${field().id}_${option.value}`">{{ option.label }}</label>
+          </div>
+        } @empty {
+          <span class="field__information">Add children by editing the field.</span>
+        }
+      </div>
+    }
 
-  <!-- Multi-select dropdown -->
-  <p-multiSelect
-    *ngIf="field().type === InputType.CHECKBOX"
-    [inputId]="field().id"
-    [formControlName]="field().id"
-    [options]="field().options ?? []"
-    class="w-full"
-    styleClass="field"
-  ></p-multiSelect>
+    @case (InputType.CHECKBOX) {
+      <div class="field--with-options">
+        @for (option of field().options ?? []; track option.value) {
+          <div class="field__item">
+            <p-checkbox
+              [inputId]="`checkbox_${field().id}_${option.value}`"
+              [formControlName]="field().id"
+              [binary]="true"
+              [value]="option.value"
+            ></p-checkbox>
+            <label [for]="`checkbox_${field().id}_${option.value}`">{{ option.label }}</label>
+          </div>
+        } @empty {
+          <span class="field__information">Add children by editing the field.</span>
+        }
+      </div>
+    }
 
-  <!-- Text area -->
-  <textarea
-    *ngIf="field().type === InputType.TEXTAREA"
-    [formControlName]="field().id"
-    rows="5"
-    cols="30"
-    pTextarea
-    styleClass="field"
-  ></textarea>
+    @case (InputType.TEXTAREA) {
+      <textarea [formControlName]="field().id" rows="5" cols="30" pTextarea></textarea>
+    }
 
-  <!-- Date -->
-  <p-datepicker *ngIf="field().type === InputType.DATE" [formControlName]="field().id" styleClass="field" />
+    @case (InputType.DATE) {
+      <p-datepicker [formControlName]="field().id" />
+    }
 
-  <!-- Password -->
-  <p-password *ngIf="field().type === InputType.PASSWORD" [formControlName]="field().id" styleClass="field" />
+    @case (InputType.PASSWORD) {
+      <p-password [formControlName]="field().id"></p-password>
+    }
+  }
 
-  <!-- Error message -->
-  <small *ngIf="showError()" class="p-error">This field is required.</small>
+  @if (showError()) {
+    <small class="p-error">This field is required.</small>
+  }
 </div>

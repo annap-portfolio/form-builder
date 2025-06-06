@@ -7,7 +7,7 @@ This is a form builder application built using Angular. It allows users to visua
 ### Form Construction
 
 - Create forms dynamically using a visual drag-and-drop interface.
-- Add fields of various types: text, textarea, number, email, password, checkbox, radio, and date.
+- Add fields of various types: text, textarea, number, password, checkbox, radio, and date.
 - Group fields together to create nested structures.
 - Edit field properties including label, default value, and validation rules.
 - Rearrange fields and groups using drag-and-drop.
@@ -18,7 +18,6 @@ This is a form builder application built using Angular. It allows users to visua
 - Text
 - Textarea
 - Number
-- Email
 - Password
 - Checkbox
 - Radio

@@ -17,6 +17,12 @@
   flex-direction: column;
   gap: 8px;
 
+  &--with-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   &__header {
     display: flex;
     align-items: center;
@@ -26,6 +32,16 @@
       font-weight: 600;
       margin-right: 8px;
     }
+  }
+
+  &__item {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__information {
+    font-size: 14px;
+    font-style: italic;
   }
 
   ::ng-deep {

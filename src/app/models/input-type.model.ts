@@ -3,7 +3,6 @@ export enum InputType {
   TEXT = 'text',
   TEXTAREA = 'textarea',
   NUMBER = 'number',
-  EMAIL = 'email',
   PASSWORD = 'password',
   CHECKBOX = 'checkbox',
   RADIO = 'radio',

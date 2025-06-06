@@ -167,15 +167,6 @@ describe('FieldEditDialogComponent', () => {
       expect(component.getApplicableValidators().length).toBe(3);
     });
 
-    it('should return true for email input type', () => {
-      const emailField = new Field({ type: InputType.EMAIL });
-      fixture.componentRef.setInput('element', emailField);
-
-      component.ngOnInit();
-
-      expect(component.getApplicableValidators().length).toBe(3);
-    });
-
     it('should return false for number input type', () => {
       const numberField = { ...mockField, type: InputType.NUMBER };
       fixture.componentRef.setInput('element', numberField);

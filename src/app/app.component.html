@@ -19,7 +19,7 @@
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel value="0">
-          <app-form-builder [addedFieldType]="fieldTypeToAdd()" (change)="onFormChange($event)"></app-form-builder>
+          <app-form-builder [addedFieldType]="fieldTypeSelected" (change)="onFormChange($event)"></app-form-builder>
         </p-tabpanel>
         <p-tabpanel value="1">
           <app-generated-code [typescriptCode]="typescriptCode()" [htmlCode]="htmlCode()"></app-generated-code>
@@ -28,7 +28,7 @@
     </p-tabs>
   } @else {
     <div class="form-column">
-      <app-form-builder [addedFieldType]="fieldTypeToAdd()" (change)="onFormChange($event)"></app-form-builder>
+      <app-form-builder [addedFieldType]="fieldTypeSelected" (change)="onFormChange($event)"></app-form-builder>
     </div>
     <p-divider layout="vertical" />
     <div class="code-column">

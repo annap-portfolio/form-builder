@@ -22,28 +22,31 @@ export class CodeGeneratorService {
 
   private readonly templateGenerators = new Map<InputType, TemplateGenerator>([
     [InputType.TEXT, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'text') }],
-    [InputType.EMAIL, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'email') }],
     [InputType.PASSWORD, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'password') }],
     [InputType.DATE, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'date') }],
     [InputType.NUMBER, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'number') }],
     [InputType.TEXTAREA, { generate: (field, pad) => this.generateTextareaTemplate(field, pad) }],
-    [InputType.CHECKBOX, { generate: (field, pad) => this.generateInputTemplate(field, pad, 'checkbox') }],
-    [InputType.RADIO, { generate: (field, pad) => `${pad}<!-- radio options here -->` }],
+    [InputType.CHECKBOX, { generate: (field, pad) => this.generateCheckboxTemplate(field, pad) }],
+    [InputType.RADIO, { generate: (field, pad) => this.generateRadioTemplate(field, pad) }],
   ]);
 
   /**
    * Generates TypeScript FormBuilder code from form definition
    */
   generateTypescriptCode(formDefinition: FormDefinition): string {
-    const formControls = this.generateControls([...formDefinition.children]);
-    return `this.form = this.fb.group({\n${formControls}\n});`;
+    if (formDefinition.children) {
+      const formControls = this.generateControls([...formDefinition.children]);
+      return `this.form = this.fb.group({\n${formControls}\n});`;
+    } else return '';
   }
 
   /**
    * Generates HTML template code from form definition
    */
   generateHTMLTemplate(formDefinition: FormDefinition): string {
-    return this.generateTemplateControls([...formDefinition.children]);
+    if (formDefinition.children) {
+      return this.generateTemplateControls([...formDefinition.children]);
+    } else return '';
   }
 
   private generateControls(elements: FormElement[], indent = 2): string {
@@ -63,9 +66,10 @@ export class CodeGeneratorService {
   }
 
   private generateFieldControl(field: Field, padding: string, indent: number): string {
-    const value = this.stringifyValue(field.value);
+    const value = field.type === InputType.CHECKBOX ? `[]` : this.stringifyValue(field.value);
     const fieldValidators = [...field.validators];
     const validators = this.generateValidators(fieldValidators || [], indent);
+
     return `${padding}${field.id}: [${value}, ${validators}],`;
   }
 
@@ -102,7 +106,7 @@ export class CodeGeneratorService {
   }
 
   private generateTemplateControls(elements: FormElement[], indent = 2): string {
-    const padding = this.createPadding(indent);
+    const padding = this.createPadding(0);
 
     return elements
       .map((element) => {
@@ -157,6 +161,60 @@ export class CodeGeneratorService {
       `${innerPadding}formControlName="${field.id}">`,
       `${padding}</textarea>`,
     ].join('\n');
+  }
+
+  private generateCheckboxTemplate(field: Field, padding: string): string {
+    if (!field.options || field.options.length === 0) {
+      return `${padding}<!-- No checkbox options provided -->`;
+    }
+
+    const innerPadding = this.createPadding(padding.length + 2);
+    const optionPadding = this.createPadding(padding.length + 4);
+
+    return field.options
+      .map((option) => {
+        return [
+          `${padding}<div>`,
+          `${innerPadding}<input`,
+          `${optionPadding}type="checkbox"`,
+          `${optionPadding}id="${field.id}_${option.value}"`,
+          `${optionPadding}name="${field.id}"`,
+          `${optionPadding}value="${option.value}"`,
+          `${optionPadding}formControlName="${field.id}" />`,
+          `${innerPadding}<label for="${field.id}_${option.value}">`,
+          `${optionPadding}${option.label}`,
+          `${innerPadding}</label>`,
+          `${padding}</div>`,
+        ].join('\n');
+      })
+      .join('\n');
+  }
+
+  private generateRadioTemplate(field: Field, padding: string): string {
+    if (!field.options || field.options.length === 0) {
+      return `${padding}<!-- No radio options provided -->`;
+    }
+
+    const innerPadding = this.createPadding(padding.length + 2);
+    const optionPadding = this.createPadding(padding.length + 4);
+
+    return field.options
+      .map((option) => {
+        return [
+          `${padding}<div>`,
+          `${innerPadding}<input`,
+          `${optionPadding}type="radio"`,
+          `${optionPadding}id="${field.id}_${option.value}"`,
+          `${optionPadding}name="${field.id}"`,
+          `${optionPadding}value="${option.value}"`,
+          `${optionPadding}formControlName="${field.id}" />`,
+          `${innerPadding}<label for="${field.id}_${option.value}">`,
+          `${optionPadding}${option.label}`,
+          `${innerPadding}</label>`,
+          `${padding}</div>`,
+        ].join('\n');
+      })
+      .join('\n');
   }
 
   private createPadding(indent: number): string {

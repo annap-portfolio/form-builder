@@ -11,7 +11,7 @@ export class FormDefinition {
     this._children = fields ?? [];
   }
 
-  get children(): ReadonlyArray<FormElement> {
+  get children(): FormElement[] {
     return this._children;
   }
 

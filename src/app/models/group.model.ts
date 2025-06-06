@@ -27,9 +27,9 @@ export class Group {
   }
 
   /**
-   * Gets a readonly copy of children array
+   * Gets a copy of children array
    */
-  get children(): readonly Field[] {
+  get children(): Field[] {
     return [...this._children];
   }
 

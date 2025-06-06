@@ -10,7 +10,7 @@ describe('Group', () => {
 
   beforeEach(() => {
     mockField1 = new Field({ id: 'field-1', label: 'Field 1', type: InputType.TEXT });
-    mockField2 = new Field({ id: 'field-2', label: 'Field 2', type: InputType.EMAIL });
+    mockField2 = new Field({ id: 'field-2', label: 'Field 2', type: InputType.TEXTAREA });
     mockField3 = new Field({ id: 'field-3', label: 'Field 3', type: InputType.NUMBER });
 
     const config: GroupConfig = {
@@ -147,7 +147,7 @@ describe('Group', () => {
     });
 
     it('should replace existing child', () => {
-      const replacementField = new Field({ id: 'replacement', type: InputType.EMAIL });
+      const replacementField = new Field({ id: 'replacement', type: InputType.TEXT });
 
       const result = group.replaceChild(mockField1, replacementField);
 
@@ -198,7 +198,7 @@ describe('Group', () => {
   describe('Search and Filter Operations', () => {
     beforeEach(() => {
       mockField1.label = 'Text Field';
-      mockField2.label = 'Email Field';
+      mockField2.label = 'Textarea Field';
       group.addChildren([mockField1, mockField2]);
     });
 

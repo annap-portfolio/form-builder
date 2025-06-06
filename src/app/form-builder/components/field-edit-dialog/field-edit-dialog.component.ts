@@ -1,7 +1,8 @@
-import { Component, Input, input, OnInit, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, input, OnInit, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { Field } from '@models/field.model';
+import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Field, FieldOption } from '@models/field.model';
 import { FormElement } from '@models/form-definition.model';
 import { InputType } from '@models/input-type.model';
 import { ValidatorDefinition, ValidatorType } from '@models/validator-definition.model';
@@ -35,6 +36,7 @@ interface ValidatorOption {
   ],
   templateUrl: './field-edit-dialog.component.html',
   styleUrl: './field-edit-dialog.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FieldEditDialogComponent implements OnInit {
   // Inputs & Outputs
@@ -46,6 +48,7 @@ export class FieldEditDialogComponent implements OnInit {
   // Form data
   label = '';
   validators: ValidatorDefinition[] = [];
+  options: FieldOption[] = [];
 
   // Validator configuration
   readonly validatorOptions: ValidatorOption[] = [
@@ -57,7 +60,6 @@ export class FieldEditDialogComponent implements OnInit {
       applicableTypes: [
         InputType.TEXT,
         InputType.TEXTAREA,
-        InputType.EMAIL,
         InputType.PASSWORD,
         InputType.NUMBER,
         InputType.DATE,
@@ -71,7 +73,7 @@ export class FieldEditDialogComponent implements OnInit {
       checked: false,
       value: 1,
       hasValueInput: true,
-      applicableTypes: [InputType.TEXT, InputType.TEXTAREA, InputType.EMAIL, InputType.PASSWORD],
+      applicableTypes: [InputType.TEXT, InputType.TEXTAREA, InputType.PASSWORD],
     },
     {
       name: ValidatorType.MAX_LENGTH,
@@ -79,7 +81,7 @@ export class FieldEditDialogComponent implements OnInit {
       checked: false,
       value: 100,
       hasValueInput: true,
-      applicableTypes: [InputType.TEXT, InputType.TEXTAREA, InputType.EMAIL, InputType.PASSWORD],
+      applicableTypes: [InputType.TEXT, InputType.TEXTAREA, InputType.PASSWORD],
     },
     {
       name: ValidatorType.MIN,
@@ -87,7 +89,7 @@ export class FieldEditDialogComponent implements OnInit {
       checked: false,
       value: 0,
       hasValueInput: true,
-      applicableTypes: [InputType.NUMBER, InputType.DATE],
+      applicableTypes: [InputType.NUMBER],
     },
     {
       name: ValidatorType.MAX,
@@ -95,13 +97,18 @@ export class FieldEditDialogComponent implements OnInit {
       checked: false,
       value: 100,
       hasValueInput: true,
-      applicableTypes: [InputType.NUMBER, InputType.DATE],
+      applicableTypes: [InputType.NUMBER],
     },
   ];
 
   // Utility functions (exported for template)
   readonly isGroup = isGroup;
   readonly isField = isField;
+  readonly InputType = InputType;
+
+  // Icons
+  faTrash = faTrash;
+  faPlus = faPlus;
 
   ngOnInit(): void {
     this.initializeFormData();
@@ -155,11 +162,32 @@ export class FieldEditDialogComponent implements OnInit {
     this.close.emit();
   }
 
+  /**
+   * Adds option for checkbox or radio fields
+   */
+  addOption(): void {
+    this.options.push({ label: '', value: '', disabled: false });
+  }
+
+  /**
+   * Removes option from checkbox or radio fields
+   */
+  removeOption(index: number): void {
+    this.options.splice(index, 1);
+  }
+
   // Private helper methods
 
   private initializeFormData(): void {
     this.label = this.element().label ?? '';
     this.validators = this.isField(this.element()) ? [...(this.element() as Field).validators] : [];
+
+    if (!!this.element() && isField(this.element())) {
+      const options = (this.element() as Field).options;
+      if (options) {
+        this.options = options;
+      }
+    }
   }
 
   private loadExistingValidators(): void {
@@ -259,6 +287,7 @@ export class FieldEditDialogComponent implements OnInit {
 
     if (this.isField(clonedElement)) {
       (clonedElement as Field).validators = [...this.validators];
+      (clonedElement as Field).options = [...this.options];
     }
 
     return clonedElement;

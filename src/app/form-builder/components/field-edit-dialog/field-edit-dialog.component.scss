@@ -1,6 +1,6 @@
 :host ::ng-deep {
   .edit-dialog {
-    width: 500px;
+    width: 600px;
 
     &__header {
       margin: 0;
@@ -56,5 +56,15 @@
 
   p-button {
     flex-grow: 1;
+  }
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  &__item {
+    display: flex;
+    gap: 8px;
   }
 }

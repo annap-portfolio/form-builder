@@ -22,19 +22,19 @@ describe('Field', () => {
     it('should create field with config', () => {
       const config: FieldConfig = {
         id: 'custom-id',
-        type: InputType.EMAIL,
-        label: 'Email Field',
+        type: InputType.TEXT,
+        label: 'Text Field',
         validators: [mockValidator],
-        value: 'test@example.com',
+        value: 'test',
       };
 
       const customField = new Field(config);
 
       expect(customField.id).toBe('custom-id');
-      expect(customField.type).toBe(InputType.EMAIL);
-      expect(customField.label).toBe('Email Field');
+      expect(customField.type).toBe(InputType.TEXT);
+      expect(customField.label).toBe('Text Field');
       expect(customField.validators).toContain(mockValidator);
-      expect(customField.value).toBe('test@example.com');
+      expect(customField.value).toBe('test');
     });
 
     it('should generate UUID when no id provided', () => {
@@ -50,12 +50,12 @@ describe('Field', () => {
 
     it('should use default label when none provided', () => {
       const config: FieldConfig = {
-        type: InputType.EMAIL,
+        type: InputType.TEXT,
       };
 
       const defaultLabelField = new Field(config);
 
-      expect(defaultLabelField.label).toBe('Email Field');
+      expect(defaultLabelField.label).toBe('Text Field');
     });
 
     it('should normalize string options to FieldOption objects', () => {
@@ -321,16 +321,15 @@ describe('Field', () => {
     it('should create field from JSON', () => {
       const jsonData = {
         id: 'json-field',
-        type: InputType.EMAIL,
+        type: InputType.TEXT,
         label: 'JSON Field',
         validators: [mockValidator],
-        options: [{ label: 'Option 1', value: 'option1' }],
       };
 
       const fromJsonField = Field.fromJSON(jsonData);
 
       expect(fromJsonField.id).toBe('json-field');
-      expect(fromJsonField.type).toBe(InputType.EMAIL);
+      expect(fromJsonField.type).toBe(InputType.TEXT);
       expect(fromJsonField.label).toBe('JSON Field');
       expect(fromJsonField.validators).toEqual([mockValidator]);
     });

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, inject, Input, OnInit, output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DragDropService } from '@core/services/drag-drop.service';
 import { FormBuilderService } from '@core/services/form-builder.service';
@@ -14,6 +14,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DragDropModule } from 'primeng/dragdrop';
 import { TabsModule } from 'primeng/tabs';
+import { Observable } from 'rxjs';
 import { FieldEditDialogComponent } from './components/field-edit-dialog/field-edit-dialog.component';
 import { FormInputComponent } from './components/form-input/form-input.component';
 
@@ -34,7 +35,7 @@ import { FormInputComponent } from './components/form-input/form-input.component
   styleUrl: './form-builder.component.scss',
 })
 export class FormBuilderComponent implements OnInit {
-  addedFieldType = input<InputType | null>();
+  @Input() addedFieldType: Observable<InputType> | null = null;
   change = output<FormDefinition>();
 
   private formBuilderService = inject(FormBuilderService);
@@ -55,15 +56,11 @@ export class FormBuilderComponent implements OnInit {
   isGroup = isGroup;
   isField = isField;
 
-  constructor() {
-    effect(() => {
-      if (!!this.addedFieldType()) {
-        this.onInputSelected(this.addedFieldType()!);
-      }
-    });
-  }
-
   ngOnInit() {
+    if (this.addedFieldType) {
+      this.addedFieldType.subscribe((type) => this.onInputSelected(type));
+    }
+
     const savedJson = localStorage.getItem('formBuilder');
     if (savedJson) {
       this.formDefinition = FormDefinition.fromJSON(savedJson);

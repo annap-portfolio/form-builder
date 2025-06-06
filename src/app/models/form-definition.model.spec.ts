@@ -48,7 +48,7 @@ describe('FormDefinition', () => {
     });
 
     it('should replace existing child', () => {
-      const newField = new Field({ id: 'field-1', label: 'Test Field', type: InputType.EMAIL });
+      const newField = new Field({ id: 'field-1', label: 'Test Field', type: InputType.TEXT });
 
       formDef.addChild(mockField);
       const result = formDef.replaceChild(mockField, newField);
@@ -58,7 +58,7 @@ describe('FormDefinition', () => {
     });
 
     it('should return false when replacing non-existent child', () => {
-      const newField = new Field({ id: 'non-existent', label: 'Test Field', type: InputType.EMAIL });
+      const newField = new Field({ id: 'non-existent', label: 'Test Field', type: InputType.TEXT });
 
       const result = formDef.replaceChild(mockField, newField);
 
@@ -135,7 +135,7 @@ describe('FormDefinition', () => {
 
   describe('Move Operations', () => {
     beforeEach(() => {
-      const field2 = new Field({ id: 'field-2', label: 'Test Field', type: InputType.EMAIL });
+      const field2 = new Field({ id: 'field-2', label: 'Test Field', type: InputType.TEXT });
 
       formDef.addChild(mockField);
       formDef.addChild(mockGroup);
