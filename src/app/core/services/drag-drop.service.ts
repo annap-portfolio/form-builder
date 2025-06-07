@@ -136,7 +136,6 @@ export class DragDropService {
     // Add to target group
     targetGroup.addChild(draggedField);
 
-    // Update form controls
     this.moveControlToGroup(form, draggedField, targetGroup);
 
     return { success: true };

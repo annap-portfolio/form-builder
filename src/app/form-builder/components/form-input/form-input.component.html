@@ -39,7 +39,7 @@
             <label [for]="`radio_${field().id}_${option.value}`">{{ option.label }}</label>
           </div>
         } @empty {
-          <span class="field__information">Add children by editing the field.</span>
+          <span class="field__information">Add options by editing the field.</span>
         }
       </div>
     }
@@ -57,7 +57,7 @@
             <label [for]="`checkbox_${field().id}_${option.value}`">{{ option.label }}</label>
           </div>
         } @empty {
-          <span class="field__information">Add children by editing the field.</span>
+          <span class="field__information">Add options by editing the field.</span>
         }
       </div>
     }
@@ -73,9 +73,5 @@
     @case (InputType.PASSWORD) {
       <p-password [formControlName]="field().id"></p-password>
     }
-  }
-
-  @if (showError()) {
-    <small class="p-error">This field is required.</small>
   }
 </div>

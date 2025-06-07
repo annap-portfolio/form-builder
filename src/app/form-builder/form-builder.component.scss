@@ -1,69 +1,62 @@
 h2 {
-  margin: 0;
-  margin-bottom: 16px;
+  margin: 0 0 16px;
 }
 
 .fields {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 230px);
   overflow: auto;
   width: 100%;
 }
 
 .instruction {
-  border-radius: 16px;
-  border: 4px dashed #ddd;
-  width: 100%;
-  height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 200px;
   padding: 32px 24px;
+  border: 4px dashed #ddd;
+  border-radius: 16px;
 }
 
 .field-wrapper {
-  border: 1px dashed transparent;
-  transition: border 0.2s ease;
   padding: 8px;
+  border: 1px dashed transparent;
   border-radius: 8px;
+  transition: border 0.2s ease;
 
   &--group {
     border: 1px dashed #aaa;
     padding: 16px 12px 8px;
     margin: 4px 0;
   }
-}
 
-.field-wrapper.p-draggable-enter {
-  border-color: #007ad9;
-  background-color: #f0f8ff;
+  &.p-draggable-enter {
+    border-color: #007ad9;
+    background-color: #f0f8ff;
+  }
 }
 
 .field-divider {
-  height: 4px;
   width: 100%;
+  height: 4px;
   border-radius: 2px;
+
   &.p-draggable-enter {
     background-color: #007ad9;
   }
 }
 
-.group {
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    &__title {
-      font-size: 17px;
-      font-weight: 600;
-      margin: 0;
-      margin-left: 8px;
-    }
-
-    &__actions {
-    }
+  &__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0 8px;
   }
 }

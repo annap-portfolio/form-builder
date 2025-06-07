@@ -57,8 +57,4 @@ export class FormInputComponent {
   get control() {
     return this.formGroup.get(this.field().id);
   }
-
-  showError(): boolean {
-    return !!this.control?.invalid && (this.control?.touched || this.control?.dirty);
-  }
 }

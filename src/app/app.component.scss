@@ -7,45 +7,54 @@
     'header header'
     'divider divider'
     'sidebar content';
-  column-gap: 32px;
-  row-gap: 16px;
+  gap: 16px 32px;
 
-  .p-divider-horizontal {
-    margin: 0;
-    width: 100%;
+  ::ng-deep .p-tabpanels {
+    height: calc(100vh - 152px);
+    overflow: auto;
   }
+}
 
-  .p-divider-vertical {
-    margin: 0;
-    width: 1px;
+.p-divider-horizontal,
+.p-divider-vertical {
+  margin: 0;
+}
+
+.p-divider-horizontal {
+  width: 100%;
+}
+
+.p-divider-vertical {
+  width: 1px;
+}
+
+header {
+  grid-area: header;
+}
+
+.divider {
+  grid-area: divider;
+}
+
+.sidebar {
+  grid-area: sidebar;
+}
+
+.content {
+  grid-area: content;
+
+  .form-column,
+  .code-column {
+    max-height: calc(100vh - 100px);
+    overflow: auto;
   }
+}
 
-  header {
-    grid-area: header;
-  }
-
-  .divider {
-    grid-area: divider;
-  }
-
-  .sidebar {
-    grid-area: sidebar;
-  }
-
+/* Responsive adjustments */
+@media (min-width: 992px) {
   .content {
-    grid-area: content;
-
-    @media (min-width: 992px) {
-      display: grid;
-      grid-template-columns: auto 1px auto;
-      gap: 32px;
-    }
-
-    ::ng-deep {
-      .p-tabpanels {
-        height: calc(100vh - 152px);
-        overflow: auto;
-      }
-    }
+    display: grid;
+    grid-template-columns: auto 1px auto;
+    gap: 32px;
   }
 }

@@ -70,6 +70,9 @@ export class FormBuilderComponent implements OnInit {
     }
   }
 
+  /**
+   * Creates a new form field based on the selected input type.
+   */
   onInputSelected(type: InputType) {
     const newField = new Field({ type });
 
@@ -93,6 +96,9 @@ export class FormBuilderComponent implements OnInit {
     this.saveFormModel();
   }
 
+  /**
+   * Removes all elements from a group and deletes the group.
+   */
   onUngroupGroup(group: FormElement): void {
     if (!isGroup(group)) return;
 
@@ -120,6 +126,9 @@ export class FormBuilderComponent implements OnInit {
     this.saveFormModel();
   }
 
+  /**
+   * Moves a field out of its parent group and places it at the top level.
+   */
   onFieldUngroup(field: FormElement, parentGroup: Group | undefined) {
     if (!parentGroup || !isGroup(parentGroup)) return;
 
@@ -216,23 +225,6 @@ export class FormBuilderComponent implements OnInit {
     this.editedElement.set(null);
     this.isEditDialogVisible = false;
     this.saveFormModel();
-  }
-
-  private findControlById(id: string): FormControl | null {
-    if (this.form.contains(id)) {
-      return this.form.get(id) as FormControl;
-    }
-
-    for (const element of this.formDefinition.children) {
-      if (element instanceof Group) {
-        const groupControl = this.form.get(element.id) as FormGroup;
-        if (groupControl?.contains(id)) {
-          return groupControl.get(id) as FormControl;
-        }
-      }
-    }
-
-    return null;
   }
 
   private saveFormModel() {
