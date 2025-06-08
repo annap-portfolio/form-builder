@@ -67,6 +67,10 @@ export class FormDefinition {
     return this.getAllFields().length;
   }
 
+  isEmpty(): boolean {
+    return this._children.length === 0;
+  }
+
   toJSON(): string {
     return JSON.stringify({ fields: this._children }, null, 2);
   }

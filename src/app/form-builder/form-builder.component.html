@@ -7,7 +7,11 @@
 } @else {
   <div class="instruction">
     <h2>Build your form</h2>
-    <p>Add fields from the left to build your form.</p>
+    @if (isMobile()) {
+      <p>Expand the menu in the top right and add fields to build your form.</p>
+    } @else {
+      <p>Add fields from the left to build your form.</p>
+    }
   </div>
 }
 

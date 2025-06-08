@@ -50,9 +50,14 @@ export class AppComponent {
     this.fieldTypeSelected.next(type);
   }
 
-  onFormChange(form: FormDefinition) {
-    this.typescriptCode.set(this.codeGeneratorService.generateTypescriptCode(form));
-    this.htmlCode.set(this.codeGeneratorService.generateHTMLTemplate(form));
+  onFormChange(form: FormDefinition | null) {
+    if (!form) {
+      this.typescriptCode.set('');
+      this.htmlCode.set('');
+    } else {
+      this.typescriptCode.set(this.codeGeneratorService.generateTypescriptCode(form));
+      this.htmlCode.set(this.codeGeneratorService.generateHTMLTemplate(form));
+    }
   }
 
   toggleSidebar(open: boolean) {

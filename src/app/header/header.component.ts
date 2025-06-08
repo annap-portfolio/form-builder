@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAlignLeft, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faAlignLeft, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
@@ -17,7 +17,7 @@ export class HeaderComponent {
 
   // Icons
   faAlignLeft = faAlignLeft;
-  faBars = faBars;
+  faPlus = faPlus;
 
   onOpenSidebar() {
     this.openSidebar.emit();

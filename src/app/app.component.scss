@@ -4,10 +4,16 @@
   flex-direction: column;
   gap: 16px 32px;
 
-  ::ng-deep .p-tabpanels {
-    padding: 0;
-    height: calc(100vh - 162px);
-    overflow: auto;
+  ::ng-deep {
+    .p-tablist {
+      margin-bottom: 16px;
+    }
+
+    .p-tabpanels {
+      padding: 0;
+      height: calc(100vh - 170px);
+      overflow: auto;
+    }
   }
 }
 
@@ -70,8 +76,6 @@ header {
 
     ::ng-deep .p-tabpanels {
       padding: 16px;
-      height: calc(100vh - 162px);
-      overflow: auto;
     }
   }
 

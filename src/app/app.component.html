@@ -17,7 +17,7 @@
 }
 
 <div class="content">
-  @if (isMobile()) {
+  @if (isMobile() && (typescriptCode() || htmlCode())) {
     <p-tabs value="0">
       <p-tablist>
         <p-tab value="0">Form</p-tab>
@@ -25,7 +25,11 @@
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel value="0">
-          <app-form-builder [addedFieldType]="fieldTypeSelected" (change)="onFormChange($event)"></app-form-builder>
+          <app-form-builder
+            [addedFieldType]="fieldTypeSelected"
+            [isMobile]="isMobile()"
+            (change)="onFormChange($event)"
+          ></app-form-builder>
         </p-tabpanel>
         <p-tabpanel value="1">
           <app-generated-code [typescriptCode]="typescriptCode()" [htmlCode]="htmlCode()"></app-generated-code>
@@ -35,12 +39,19 @@
   } @else {
     <div class="form-column">
       <h2>Form</h2>
-      <app-form-builder [addedFieldType]="fieldTypeSelected" (change)="onFormChange($event)"></app-form-builder>
+      <app-form-builder
+        [addedFieldType]="fieldTypeSelected"
+        [isMobile]="isMobile()"
+        (change)="onFormChange($event)"
+      ></app-form-builder>
     </div>
-    <p-divider layout="vertical" />
-    <div class="code-column">
-      <h2>Code</h2>
-      <app-generated-code [typescriptCode]="typescriptCode()" [htmlCode]="htmlCode()"></app-generated-code>
-    </div>
+
+    @if (typescriptCode() || htmlCode()) {
+      <p-divider layout="vertical" />
+      <div class="code-column">
+        <h2>Code</h2>
+        <app-generated-code [typescriptCode]="typescriptCode()" [htmlCode]="htmlCode()"></app-generated-code>
+      </div>
+    }
   }
 </div>

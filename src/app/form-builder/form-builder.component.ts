@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, Input, OnInit, output, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, inject, input, Input, OnInit, output, signal } from '@angular/core';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DragDropService } from '@core/services/drag-drop.service';
 import { FormBuilderService } from '@core/services/form-builder.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -35,8 +35,9 @@ import { FormInputComponent } from './components/form-input/form-input.component
   styleUrl: './form-builder.component.scss',
 })
 export class FormBuilderComponent implements OnInit {
+  isMobile = input.required<boolean>();
   @Input() addedFieldType: Observable<InputType> | null = null;
-  change = output<FormDefinition>();
+  change = output<FormDefinition | null>();
 
   private formBuilderService = inject(FormBuilderService);
   private dragDropService = inject(DragDropService);
@@ -228,7 +229,12 @@ export class FormBuilderComponent implements OnInit {
   }
 
   private saveFormModel() {
-    this.change.emit(this.formDefinition);
-    localStorage.setItem('formBuilder', this.formDefinition.toJSON());
+    if (this.formDefinition.isEmpty()) {
+      this.change.emit(null);
+      localStorage.removeItem('formBuilder');
+    } else {
+      this.change.emit(this.formDefinition);
+      localStorage.setItem('formBuilder', this.formDefinition.toJSON());
+    }
   }
 }
