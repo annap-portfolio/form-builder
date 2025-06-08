@@ -67,11 +67,11 @@
     }
 
     @case (InputType.DATE) {
-      <p-datepicker [formControlName]="field().id" />
+      <p-datepicker [formControlName]="field().id" appendTo="body" />
     }
 
     @case (InputType.PASSWORD) {
-      <p-password [formControlName]="field().id"></p-password>
+      <p-password [formControlName]="field().id" appendTo="body"></p-password>
     }
   }
 </div>
