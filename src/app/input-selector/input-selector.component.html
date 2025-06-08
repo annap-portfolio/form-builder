@@ -5,7 +5,7 @@
 }
 
 @for (input of inputConfigs; track input.type) {
-  <p-button variant="outlined" styleClass="input-button" size="small" (click)="onInputSelected(input.type)">
+  <p-button variant="outlined" styleClass="input-button" (click)="onInputSelected(input.type)">
     <fa-icon [icon]="input.icon"></fa-icon>
     <span>{{ input.name }}</span>
   </p-button>
