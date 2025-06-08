@@ -1,6 +1,12 @@
+@if (isMobile()) {
+  <p-button variant="text" class="close-btn" (click)="close.emit()">
+    <fa-icon [icon]="faXmark"></fa-icon>
+  </p-button>
+}
+
 @for (input of inputConfigs; track input.type) {
-<p-button variant="outlined" styleClass="input-button" (click)="inputSelected.emit(input.type)">
-  <fa-icon [icon]="input.icon"></fa-icon>
-  <span>{{ input.name }}</span>
-</p-button>
+  <p-button variant="outlined" styleClass="input-button" size="small" (click)="onInputSelected(input.type)">
+    <fa-icon [icon]="input.icon"></fa-icon>
+    <span>{{ input.name }}</span>
+  </p-button>
 }

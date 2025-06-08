@@ -1,14 +1,20 @@
 <header>
-  <app-header [title]="title"></app-header>
+  <app-header [title]="title" [isMobile]="isMobile()" (openSidebar)="toggleSidebar(true)"></app-header>
 </header>
 
 <div class="divider">
   <p-divider></p-divider>
 </div>
 
-<div class="sidebar">
-  <app-input-selector (inputSelected)="onInputSelected($event)"></app-input-selector>
-</div>
+@if (isSidebarOpen()) {
+  <div class="sidebar">
+    <app-input-selector
+      [isMobile]="isMobile()"
+      (inputSelected)="onInputSelected($event)"
+      (close)="toggleSidebar(false)"
+    ></app-input-selector>
+  </div>
+}
 
 <div class="content">
   @if (isMobile()) {
@@ -28,10 +34,12 @@
     </p-tabs>
   } @else {
     <div class="form-column">
+      <h2>Form</h2>
       <app-form-builder [addedFieldType]="fieldTypeSelected" (change)="onFormChange($event)"></app-form-builder>
     </div>
     <p-divider layout="vertical" />
     <div class="code-column">
+      <h2>Code</h2>
       <app-generated-code [typescriptCode]="typescriptCode()" [htmlCode]="htmlCode()"></app-generated-code>
     </div>
   }

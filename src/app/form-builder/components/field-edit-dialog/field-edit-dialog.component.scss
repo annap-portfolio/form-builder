@@ -1,6 +1,6 @@
 :host ::ng-deep {
   .edit-dialog {
-    width: 600px;
+    width: calc(100% - 32px);
 
     &__header {
       margin: 0;
@@ -69,5 +69,13 @@
   &__item {
     display: flex;
     gap: 8px;
+  }
+}
+
+@media (min-width: 992px) {
+  :host ::ng-deep {
+    .edit-dialog {
+      width: 600px;
+    }
   }
 }

@@ -37,10 +37,12 @@ export class AppComponent {
 
   screenWidth = signal(window.innerWidth);
   isMobile = computed(() => this.screenWidth() < 992);
+  isSidebarOpen = signal(this.screenWidth() >= 992);
 
   constructor() {
     window.addEventListener('resize', () => {
       this.screenWidth.set(window.innerWidth);
+      this.isSidebarOpen.set(this.screenWidth() >= 992);
     });
   }
 
@@ -51,5 +53,11 @@ export class AppComponent {
   onFormChange(form: FormDefinition) {
     this.typescriptCode.set(this.codeGeneratorService.generateTypescriptCode(form));
     this.htmlCode.set(this.codeGeneratorService.generateHTMLTemplate(form));
+  }
+
+  toggleSidebar(open: boolean) {
+    if (this.isMobile()) {
+      this.isSidebarOpen.set(open);
+    }
   }
 }

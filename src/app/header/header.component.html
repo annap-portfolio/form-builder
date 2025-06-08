@@ -1,2 +1,10 @@
-<fa-icon [icon]="faAlignLeft"></fa-icon>
-<h1>{{ title() }}</h1>
+<div class="title">
+  <fa-icon [icon]="faAlignLeft"></fa-icon>
+  <h1>{{ title() }}</h1>
+</div>
+
+@if (isMobile()) {
+  <p-button variant="text" size="small" (click)="onOpenSidebar()">
+    <fa-icon [icon]="faBars"></fa-icon>
+  </p-button>
+}

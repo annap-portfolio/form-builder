@@ -1,11 +1,17 @@
 :host {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: space-between;
 }
 
-h1 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
+.title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+  }
 }

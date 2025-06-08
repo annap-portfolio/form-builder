@@ -17,6 +17,7 @@ describe('InputSelectorComponent', () => {
 
   beforeEach(() => {
     fixture = TestBed.createComponent(InputSelectorComponent);
+    fixture.componentRef.setInput('isMobile', false);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

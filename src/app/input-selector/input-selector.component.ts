@@ -1,13 +1,13 @@
-import { Component, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faCalendar,
   faCheckSquare,
   faDotCircle,
-  faEnvelope,
   faFont,
   faHashtag,
   faKey,
+  faXmark,
   IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
 import { InputType } from '@models/input-type.model';
@@ -26,8 +26,12 @@ interface InputConfig {
   styleUrl: './input-selector.component.scss',
 })
 export class InputSelectorComponent {
+  isMobile = input.required<boolean>();
   inputSelected = output<InputType>();
+  close = output();
 
+  //Icons
+  faXmark = faXmark;
   iconMap: Record<InputType, IconDefinition> = {
     [InputType.TEXT]: faFont,
     [InputType.TEXTAREA]: faCalendar,
@@ -46,4 +50,9 @@ export class InputSelectorComponent {
     type: InputType[type.toUpperCase() as keyof typeof InputType],
     icon: this.iconMap[type as InputType],
   }));
+
+  onInputSelected(type: InputType) {
+    this.inputSelected.emit(type);
+    this.close.emit();
+  }
 }
